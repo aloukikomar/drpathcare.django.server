@@ -30,6 +30,7 @@ SMS_API_KEY = os.getenv('SMS_API_KEY')
 RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 GETA_API_KEY = os.getenv('GETA_API_KEY')
+BASE_URL = os.getenv('BASE_URL')
 
 class TrustAllEmailBackend(EmailBackend):
     def open(self):
