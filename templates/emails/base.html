@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>{{ subject }}</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f9fafb;
+      padding: 20px;
+      color: #333;
+    }
+    .container {
+      max-width: 600px;
+      margin: auto;
+      background: #fff;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    }
+    .header {
+      border-bottom: 2px solid #1976d2;
+      padding-bottom: 10px;
+      margin-bottom: 20px;
+    }
+    .footer {
+      font-size: 12px;
+      text-align: center;
+      color: #777;
+      margin-top: 30px;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #1976d2;
+      color: #fff;
+      border-radius: 4px;
+      text-decoration: none;
+      margin-top: 15px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>{{ subject }}</h2>
+    </div>
+
+    {{ body|safe }}
+
+    <div class="footer">
+      <p>© {{ year }} DrPathCare. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>

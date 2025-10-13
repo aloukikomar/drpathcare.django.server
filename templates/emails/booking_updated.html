@@ -1,0 +1,134 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <title>Booking Updated - DrPathCare</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #f7f9fc;
+      color: #333;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background: #ffffff;
+      border-radius: 8px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+      overflow: hidden;
+    }
+    .header {
+      background: #1976d2;
+      color: #fff;
+      padding: 20px;
+      text-align: center;
+    }
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+    }
+    .content {
+      padding: 30px;
+    }
+    .content h2 {
+      color: #1976d2;
+      margin-top: 0;
+    }
+    .details-table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 20px 0;
+      font-size: 14px;
+    }
+    .details-table th, .details-table td {
+      padding: 8px 12px;
+      text-align: left;
+      border-bottom: 1px solid #e5e7eb;
+    }
+    .details-table th {
+      background: #f0f4f8;
+      font-weight: 600;
+    }
+    .footer {
+      background: #f0f4f8;
+      text-align: center;
+      padding: 15px;
+      font-size: 12px;
+      color: #6b7280;
+    }
+    .btn {
+      display: inline-block;
+      padding: 10px 20px;
+      background: #1976d2;
+      color: #ffffff;
+      text-decoration: none;
+      border-radius: 5px;
+      margin-top: 15px;
+    }
+    .btn:hover {
+      background: #1976d2;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Booking Update Notification</h1>
+    </div>
+
+    <div class="content">
+      <h2>Hello {{ user.first_name }},</h2>
+      <p>
+        Your booking <strong>{{ booking.ref_id }}</strong> has been updated.  
+        Please find the latest details below:
+      </p>
+
+      <table class="details-table">
+        <tr>
+          <th>Booking ID</th>
+          <td>{{ booking.ref_id }}</td>
+        </tr>
+        <tr>
+          <th>Status</th>
+          <td>{{ booking.customer_status|title }}</td>
+        </tr>
+        <tr>
+          <th>Payment Status</th>
+          <td>{{ booking.payment_status|title }}</td>
+        </tr>
+        <tr>
+          <th>Final Amount</th>
+          <td>₹{{ booking.final_amount }}</td>
+        </tr>
+        <tr>
+          <th>Scheduled Date</th>
+          <td>{{ booking.scheduled_date }}</td>
+        </tr>
+        <tr>
+          <th>Scheduled Time</th>
+          <td>{{ booking.scheduled_time }}</td>
+        </tr>
+        {% if remarks %}
+        <tr>
+          <th>Remarks</th>
+          <td>{{ remarks }}</td>
+        </tr>
+        {% endif %}
+      </table>
+
+      <p>
+        You can view the complete booking details from your dashboard.
+      </p>
+
+    </div>
+
+    <div class="footer">
+      &copy; {{ current_year }} DrPathCare. All rights reserved.
+    </div>
+  </div>
+</body>
+</html>
