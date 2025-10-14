@@ -12,6 +12,12 @@ from rest_framework.decorators import action
 from django.shortcuts import get_object_or_404
 from payments.utils import refresh_booking_payment_status, refresh_latest_payment_for_booking
 
+from django.shortcuts import render, redirect
+from django.http import HttpResponse
+from django.utils.html import escape
+from django.views import View
+import time
+
 
 
 class BookingPaymentViewSet(viewsets.ModelViewSet):
@@ -86,3 +92,37 @@ class BookingPaymentViewSet(viewsets.ModelViewSet):
             return Response(BookingPaymentSerializer(updated_payment).data)
         except ValueError as e:
             return Response({"detail": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+
+class PaymentConfirmationView(View):
+    template_name = "payments/payment_confirmation.html"
+
+    def get(self, request, booking_id):
+        try:
+            booking = Booking.objects.get(id=booking_id)
+        except Booking.DoesNotExist:
+            return HttpResponse("Invalid booking reference", status=404)
+
+        # 🧾 Refresh payment status
+        try:
+            payment = refresh_latest_payment_for_booking(booking_id)
+            status = payment.status
+        except Exception as e:
+            status = "failed"
+            print(f"Payment refresh failed: {e}")
+
+        # ✅ Map status to message
+        status_message = {
+            "success": "✅ Payment Successful! Thank you for your payment.",
+            "failed": "❌ Payment Failed! Please try again.",
+            "initiated": "⏳ Payment is still processing, please wait...",
+        }.get(status, f"ℹ️ Payment status: {escape(status)}")
+
+        # Render temporary page (auto-redirects to home)
+        context = {
+            "booking_id": booking.ref_id if hasattr(booking, "ref_id") else booking.id,
+            "status": status,
+            "message": status_message,
+            "redirect_url": "https://drpathcare.com/",
+        }
+        return render(request, self.template_name, context)

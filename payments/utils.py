@@ -41,7 +41,7 @@ def create_payment_link(booking: Booking, amount: Decimal, email: str, phone: st
         },
         "notify": {"sms": True, "email": True},
         "reminder_enable": True,
-        "callback_url": f"https://webhook.site/d64e96bc-517e-4b34-96dc-ec3fe06ab9b4",  # ✅ Use your actual callback URL here
+        "callback_url": f"{settings.BASE_URL}/api/payment-confirmation/{booking.id}",  # ✅ Use your actual callback URL here
         "callback_method": "get",
     })
 
