@@ -59,6 +59,7 @@ class BookingPaymentViewSet(viewsets.ModelViewSet):
         booking = booking_payment.booking
         if booking_payment.status == "success":
             booking.payment_status = "success"
+            booking.status = "payment_collected"
             booking.payment_method = booking_payment.method
         elif booking_payment.status == "failed":
             booking.payment_status = "failed"

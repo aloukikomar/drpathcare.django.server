@@ -11,9 +11,13 @@ class Booking(models.Model):
     STATUS_CHOICES = [
         ("open", "Open"),
         ("verified", "Verified"),
+        ("manger_assigned", "Manger Assigned"),
+        ("feild_agent_assigned", "Feild Agent Assigned"),
+        ("payment_collected", "Payment Collected"),
         ("sample_collected", "Sample Collected"),
-        ("in_progress", "In Progress"),
         ("report_uploaded", "Report Uploaded"),
+        ("health_manger_assigned", "Health Manger Assigned"),
+        ("dietitian_assigned", "Dietitian Assigned"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),
     ]
@@ -21,8 +25,8 @@ class Booking(models.Model):
     CUSTOMER_STATUS_CHOICES = [
         ("registered", "Registered"),
         ("verified", "Verified"),
+        ("payment_collected", "Payment Collected"),
         ("sample_collected", "Sample Collected"),
-        ("in_progress", "In Progress"),
         ("report_uploaded", "Report Uploaded"),
         ("completed", "Completed"),
         ("cancelled", "Cancelled"),

@@ -90,18 +90,16 @@ class BookingViewSet(viewsets.ModelViewSet):
     def perform_update(self, serializer):
         booking = serializer.instance
         data = self.request.data
-        action_type = data.get("action_type")  # <- optional but preferred
+        action_type = data.get("action_type")
         remarks = data.get("remarks", "").strip()
 
         if not remarks:
             raise ValidationError({"remarks": "Remarks are required for updates."})
 
-        # --- Record original values for diff tracking ---
         old_status = booking.status
         old_payment_status = booking.payment_status
         old_agent = booking.current_agent_id
 
-        # --- Core booking update fields ---
         payment_method = data.get("payment_method")
         payment_status = data.get("payment_status")
         new_status = data.get("status")
@@ -112,12 +110,14 @@ class BookingViewSet(viewsets.ModelViewSet):
             if not new_status:
                 raise ValidationError({"status": "Status is required for this action."})
             booking.status = new_status
+            booking.save(update_fields=["status"])
 
         # === 2️⃣ Update Agent ===
         elif action_type == "update_agent":
             if not new_agent_id:
                 raise ValidationError({"current_agent": "Agent ID is required."})
             booking.current_agent_id = new_agent_id
+            booking.save(update_fields=["current_agent"])
 
         # === 3️⃣ Payment Update ===
         elif action_type == "update_payment":
@@ -126,9 +126,11 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             booking.payment_method = payment_method
 
-            # If payment is cash → mark success & create payment record
             if payment_method == "cash":
                 booking.payment_status = "success"
+                booking.status = 'payment_collected'
+                booking.save(update_fields=["payment_method", "payment_status","status"])
+
                 BookingPayment.objects.create(
                     booking=booking,
                     amount=booking.final_amount,
@@ -137,47 +139,37 @@ class BookingViewSet(viewsets.ModelViewSet):
                     remarks=remarks,
                 )
 
-            # If payment is online → initiate payment and create record
             elif payment_method == "online":
                 booking.payment_status = payment_status or "initiated"
+                booking.save(update_fields=["payment_method", "payment_status"])
 
-                payment_link_data = create_payment_link(
+                create_payment_link(
                     booking=booking,
                     amount=booking.final_amount,
                     email=booking.user.email,
                     phone=booking.user.mobile,
                 )
 
-
-        # === 4️⃣ Add Remark Only ===
         elif action_type == "add_remark":
-            # Don't change booking fields — just log remark
             pass
 
-        # === 5️⃣ Upload Document (future) ===
         elif action_type == "upload_document":
-            # Placeholder — handled elsewhere
             pass
 
-        # === ✅ Default update (no action_type or standard PATCH) ===
         else:
-            # Fall back to serializer logic for generic updates
             booking = serializer.save()
 
-        booking.save()
+        # 🚫 Removed redundant booking.save()
 
-        # --- 🔎 Detect what changed for tracker ---
-        action = "update"
-        if action_type:
-            action = action_type
-        elif booking.status != old_status:
+        # --- Tracker logging ---
+        action = action_type or "update"
+        if booking.status != old_status:
             action = "status_change"
         elif booking.payment_status != old_payment_status:
             action = "payment_update"
         elif booking.current_agent_id != old_agent:
             action = "agent_change"
 
-        # --- 🧾 Log booking action ---
         BookingActionTracker.objects.create(
             booking=booking,
             user=self.request.user if self.request.user.is_authenticated else None,
@@ -185,12 +177,6 @@ class BookingViewSet(viewsets.ModelViewSet):
             notes=remarks or f"{action.replace('_', ' ').title()} performed.",
         )
 
-    @action(detail=True, methods=["get"])
-    def actions(self, request, pk=None):
-        booking = self.get_object()
-        logs = booking.actions.all()
-        data = [{"id": a.id, "action": a.action, "notes": a.notes, "created_at": a.created_at} for a in logs]
-        return Response(data)
 
 class BookingItemViewSet(viewsets.ModelViewSet):
     queryset = BookingItem.objects.all().select_related("booking", "patient", "lab_test", "profile", "package")
