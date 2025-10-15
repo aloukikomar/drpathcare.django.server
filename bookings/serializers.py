@@ -9,6 +9,30 @@ from users.serializers import (
 )
 from lab.serializers import LabTestSerializer, ProfileSerializer, PackageSerializer
 
+# -------------------------
+# Coupon Serializers
+# -------------------------
+class CouponSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Coupon
+        fields = [
+            "id", "code", "description", "discount_type", "discount_value",
+            "max_discount_amount", "valid_from", "valid_to",
+            "usage_limit", "per_user_limit", "active", "created_at"
+        ]
+        read_only_fields = ("created_at",)
+
+
+class CouponRedemptionSerializer(serializers.ModelSerializer):
+    coupon_code = serializers.CharField(source="coupon.code", read_only=True)
+    user_email = serializers.CharField(source="user.email", read_only=True)
+
+    class Meta:
+        model = CouponRedemption
+        fields = ["id", "coupon", "coupon_code", "user", "user_email", "booking", "used_at"]
+        read_only_fields = ("used_at",)
+
+
 
 # -------------------------
 # BookingItem Serializer
@@ -57,6 +81,7 @@ class BookingActionTrackerSerializer(serializers.ModelSerializer):
 # -------------------------
 class BookingSerializer(serializers.ModelSerializer):
     user_detail = UserSerializer(source="user", read_only=True)
+    coupon_detail = CouponSerializer(source="coupon",read_only=True)
     user_email = serializers.CharField(source="user.email", read_only=True)
     address_detail = AddressSerializer(source="address", read_only=True)
 
@@ -69,8 +94,8 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            "id", "user", "user_email", "current_agent", "address", "address_detail",
-            "coupon", "coupon_code", "discount_amount", "coupon_discount", "admin_discount",
+            "id","ref_id", "user", "user_email", "current_agent", "address", "address_detail",
+            "coupon", "coupon_code","coupon_detail", "discount_amount", "coupon_discount", "admin_discount",
             "base_total", "offer_total", "final_amount", "total_savings",
             "status", "payment_status", "payment_method",
             "scheduled_date", "scheduled_time", "remarks",
@@ -78,7 +103,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at", "updated_at", "user_detail",
         ]
         read_only_fields = [
-            "id", "base_total", "offer_total", "final_amount", "total_savings",
+            "id","ref_id", "base_total", "offer_total", "final_amount", "total_savings",
             "created_at", "updated_at",
         ]
 
@@ -168,25 +193,3 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "updated_at")
 
 
-# -------------------------
-# Coupon Serializers
-# -------------------------
-class CouponSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = Coupon
-        fields = [
-            "id", "code", "description", "discount_type", "discount_value",
-            "max_discount_amount", "valid_from", "valid_to",
-            "usage_limit", "per_user_limit", "active", "created_at"
-        ]
-        read_only_fields = ("created_at",)
-
-
-class CouponRedemptionSerializer(serializers.ModelSerializer):
-    coupon_code = serializers.CharField(source="coupon.code", read_only=True)
-    user_email = serializers.CharField(source="user.email", read_only=True)
-
-    class Meta:
-        model = CouponRedemption
-        fields = ["id", "coupon", "coupon_code", "user", "user_email", "booking", "used_at"]
-        read_only_fields = ("used_at",)
