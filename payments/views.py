@@ -110,7 +110,7 @@ class PaymentConfirmationView(View):
             status = payment.status
         except Exception as e:
             status = "failed"
-            print(f"Payment refresh failed: {e}")
+            # print(f"Payment refresh failed: {e}")
 
         # ✅ Map status to message
         status_message = {

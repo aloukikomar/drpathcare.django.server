@@ -95,7 +95,6 @@ def get_booking_calculations(client_data, items, coupon_id=None):
     admin_discount = Decimal(str(client_data.get("admin_discount") or 0))
 
     # ✅ Step 4: Final total calculations
-    print(base_total , offer_total , coupon_discount , admin_discount)
     total_discount = (base_total - offer_total) + coupon_discount + admin_discount
     final_amount = base_total - total_discount
     if final_amount < 0:
