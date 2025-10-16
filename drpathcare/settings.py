@@ -72,11 +72,12 @@ DEBUG = True
 
 ALLOWED_HOSTS = ['*']
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",  # React frontend
-    "http://localhost:3001",  # React CRM
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",  # React frontend
+#     "http://localhost:3001",  # React CRM
+# ]
 
+CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 
