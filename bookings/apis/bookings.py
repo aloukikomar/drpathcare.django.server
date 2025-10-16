@@ -149,6 +149,16 @@ class BookingViewSet(viewsets.ModelViewSet):
                     email=booking.user.email,
                     phone=booking.user.mobile,
                 )
+        # === 4️⃣ Update Schedule (NEW) ===
+        elif action_type == "update_schedule":
+            new_date = data.get("scheduled_date")
+            new_time = data.get("scheduled_time")
+            if not new_date or not new_time:
+                raise ValidationError({"schedule": "Both date and time are required."})
+
+            booking.scheduled_date = new_date
+            booking.scheduled_time = new_time
+            booking.save(update_fields=["scheduled_date", "scheduled_time"])
 
         elif action_type == "add_remark":
             pass
