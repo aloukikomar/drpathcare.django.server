@@ -44,7 +44,7 @@ class Role(models.Model):
 # User Model
 # -----------------------------
 class User(AbstractBaseUser, PermissionsMixin):
-    email = models.EmailField(unique=True)
+    email = models.EmailField(unique=True, null=True, blank=True)
     mobile = models.CharField(max_length=15, unique=True)
     role = models.ForeignKey(Role, on_delete=models.PROTECT, related_name="users",blank=True, null=True)
     is_staff = models.BooleanField(default=False)
@@ -54,6 +54,7 @@ class User(AbstractBaseUser, PermissionsMixin):
     last_name = models.CharField(max_length=50,blank=True, null=True)
     gender = models.CharField(max_length=10,default='Male')
     date_of_birth = models.DateField(blank=True, null=True)
+    age = models.PositiveIntegerField(null=True, blank=True)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -78,4 +79,5 @@ def create_patient_for_user(sender, instance, created, **kwargs):
             last_name=instance.last_name or "",
             gender=instance.gender or "Male",
             date_of_birth=instance.date_of_birth or "2000-01-01",
+            age=instance.age or 18,
         )

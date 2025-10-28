@@ -85,6 +85,7 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
 
             # 🟢 Step 2: Define status-to-customer_status mapping
             customer_status_map = {
+                "open":"registered",
                 "verified": "verified",
                 "manager_assigned": "verified",
                 "field_agent_assigned": "verified",

@@ -158,7 +158,106 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             booking.scheduled_date = new_date
             booking.scheduled_time = new_time
-            booking.save(update_fields=["scheduled_date", "scheduled_time"])
+            booking.status = 'open'
+            booking.save(update_fields=["scheduled_date", "scheduled_time","status"])
+
+        # === 5️⃣ Update Items (Revalidated with get_booking_calculations) ===
+        elif action_type == "update_items":
+            items_data = data.get("items", [])
+            if not items_data:
+                raise ValidationError({"items": "At least one booking item is required."})
+
+            coupon_id = data.get("coupon")
+            ok, result = get_booking_calculations(data, items_data, coupon_id)
+            if not ok:
+                raise ValidationError({"calculation_error": result})
+
+            # 🧾 Drop old items
+            booking.items.all().delete()
+
+            # 🧮 Add new items from validated data
+            for item in result["items"]:
+                BookingItem.objects.create(
+                    booking=booking,
+                    patient_id=item.get("patient"),
+                    lab_test_id=item["product_id"] if item["product_type"] == "lab_test" else None,
+                    profile_id=item["product_id"] if item["product_type"] == "lab_profile" else None,
+                    package_id=item["product_id"] if item["product_type"] == "lab_package" else None,
+                    base_price=item["base_price"],
+                    offer_price=item["offer_price"],
+                )
+
+            # ✅ Update booking totals from validated result
+            booking.base_total = result["base_total"]
+            booking.offer_total = result["offer_total"]
+            booking.coupon_discount = result["coupon_discount"]
+            booking.admin_discount = result["admin_discount"]
+            booking.discount_amount = result["total_discount"]
+            booking.final_amount = result["final_amount"]
+            booking.total_savings = result["base_total"] - result["final_amount"]
+            booking.coupon_id = data.get("coupon") or None
+            booking.status = "open"
+            booking.save(
+                update_fields=[
+                    "base_total",
+                    "offer_total",
+                    "coupon_discount",
+                    "admin_discount",
+                    "discount_amount",
+                    "final_amount",
+                    "total_savings",
+                    "coupon",
+                    "status",
+                ]
+            )
+
+            # 💡 Optional: Incentive hook
+            # for item in booking.items.all():
+            #     if item.lab_test_id:
+            #         create_incentive(item.lab_test_id, booking.id, self.request.user.id)
+
+            action = "update_items"
+
+        # === 6️⃣ Update Discounts (Coupon / Admin only) ===
+        elif action_type == "update_discounts":
+            coupon_id = data.get("coupon")
+            admin_discount = float(data.get("admin_discount") or 0)
+
+            # Fetch items for recalculation
+            items_data = []
+            for item in booking.items.all():
+                items_data.append({
+                    "patient": item.patient_id,
+                    "base_price": item.base_price,
+                    "offer_price": item.offer_price,
+                    "lab_test": item.lab_test_id,
+                    "profile": item.profile_id,
+                    "package": item.package_id,
+                })
+
+            # Validate through shared helper
+            ok, result = get_booking_calculations(data, items_data, coupon_id)
+            if not ok:
+                raise ValidationError({"calculation_error": result})
+
+            # Update verified totals
+            booking.coupon_id = coupon_id or None
+            booking.admin_discount = result["admin_discount"]
+            booking.coupon_discount = result["coupon_discount"]
+            booking.discount_amount = result["total_discount"]
+            booking.final_amount = result["final_amount"]
+            booking.total_savings = result["base_total"] - result["final_amount"]
+            booking.save(update_fields=[
+                "coupon",
+                "admin_discount",
+                "coupon_discount",
+                "discount_amount",
+                "final_amount",
+                "total_savings",
+            ])
+
+            action = "update_discounts"
+
 
         elif action_type == "add_remark":
             pass

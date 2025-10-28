@@ -62,6 +62,7 @@ class UserSerializer(serializers.ModelSerializer):
             "last_name",
             "gender",
             "date_of_birth",
+            "age",
             "role",
             "role_name",
             "is_staff",
