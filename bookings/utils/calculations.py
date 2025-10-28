@@ -43,7 +43,6 @@ def get_booking_calculations(client_data, items, coupon_id=None):
     base_total = Decimal("0.00")
     offer_total = Decimal("0.00")
     item_results = []
-
     for item in items:
         product_type = item.get("product_type")
         product_id = item.get("product_id")
