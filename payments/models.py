@@ -41,6 +41,8 @@ class BookingPayment(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    file_url = models.URLField(max_length=1024,blank=True, null=True)
+
     class Meta:
         ordering = ["-created_at"]
 

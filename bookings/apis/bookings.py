@@ -11,6 +11,7 @@ from rest_framework.exceptions import ValidationError
 from bookings.utils.calculations import get_booking_calculations
 from payments.utils import create_payment_link
 from payments.models import BookingPayment
+from bookings.utils.s3_utils import upload_to_s3 
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all().select_related("user", "address", "coupon").prefetch_related("items")
@@ -128,15 +129,21 @@ class BookingViewSet(viewsets.ModelViewSet):
 
             if payment_method == "cash":
                 booking.payment_status = "success"
-                booking.status = 'payment_collected'
-                booking.save(update_fields=["payment_method", "payment_status","status"])
+                booking.status = "payment_collected"
+                booking.save(update_fields=["payment_method", "payment_status", "status"])
 
+                # 🧾 Upload optional proof file via S3 utility
+                file_obj = self.request.FILES.get("file")
+                file_url = upload_to_s3(file_obj, prefix="cash_payments/") if file_obj else None
+
+                # 💰 Create payment record
                 BookingPayment.objects.create(
                     booking=booking,
                     amount=booking.final_amount,
                     method="cash",
                     status="success",
                     remarks=remarks,
+                    file_url=file_url,  # proof of payment (optional)
                 )
 
             elif payment_method == "online":
