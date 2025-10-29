@@ -2,11 +2,13 @@
 from rest_framework.routers import DefaultRouter
 from django.urls import path, include
 from .views import BookingPublicDetailView
-from bookings.apis import BookingViewSet, BookingItemViewSet, CartViewSet, CouponViewSet, CouponRedemptionViewSet
+from bookings.apis import BookingViewSet, BookingItemViewSet, CartViewSet, CouponViewSet, CouponRedemptionViewSet,BookingDocumentViewSet
 
 router = DefaultRouter()
 router.register(r'bookings', BookingViewSet, basename='booking')
 router.register(r'booking-items', BookingItemViewSet, basename='booking-item')
+router.register(r'booking-documents', BookingDocumentViewSet, basename='booking-document')
+
 
 # new endpoints
 router.register(r'carts', CartViewSet, basename='cart')

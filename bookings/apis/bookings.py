@@ -18,8 +18,8 @@ class BookingViewSet(viewsets.ModelViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["user__first_name", "user__last_name", "user__mobile", "remarks"]
-    ordering_fields = ["created_at", "final_amount", "status", "payment_status"]
+    search_fields = ["user__first_name", "user__last_name", "user__mobile", "remarks","user__email"]
+    ordering_fields = ["created_at", "final_amount", "status", "payment_status","user__email"]
 
     def get_queryset(self):
         qs = super().get_queryset()
