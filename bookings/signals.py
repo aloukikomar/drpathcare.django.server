@@ -91,9 +91,9 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
                 "field_agent_assigned": "verified",
                 "payment_collected": "payment_collected",
                 "sample_collected": "sample_collected",
-                "report_uploaded": "report_uploaded",
-                "health_manager_assigned": "report_uploaded",
-                "dietitian_assigned": "report_uploaded",
+                "report_uploaded": "report-uploaded",
+                "health_manager_assigned": "report-uploaded",
+                "dietitian_assigned": "report-uploaded",
                 "completed": "completed",
                 "cancelled": "cancelled",
             }

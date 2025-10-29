@@ -26,6 +26,7 @@ class BookingPaymentSerializer(serializers.ModelSerializer):
             "metadata",
             "created_at",
             "updated_at",
+            "file_url",
         ]
         read_only_fields = [
             "id",
@@ -33,4 +34,5 @@ class BookingPaymentSerializer(serializers.ModelSerializer):
             "updated_at",
             "payment_link",
             "gateway_response",
+            "file_url",
         ]
