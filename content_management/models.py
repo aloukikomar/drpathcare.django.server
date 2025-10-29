@@ -2,13 +2,6 @@ from django.db import models
 
 
 class ContentManager(models.Model):
-    """
-    Centralized content management for storing media assets (images, docs, etc.)
-    Example:
-      - Test Image
-      - Profile Image
-      - Package Banner
-    """
     MEDIA_TYPES = [
         ("image", "Image"),
         ("video", "Video"),
@@ -18,9 +11,9 @@ class ContentManager(models.Model):
 
     title = models.CharField(max_length=255)
     description = models.TextField(blank=True, null=True)
-    file = models.FileField(upload_to="content/")   # stored in S3 via django-storages
+    file_url = models.URLField(max_length=1024, blank=True, null=True)
     media_type = models.CharField(max_length=20, choices=MEDIA_TYPES, default="image")
-    tags = models.JSONField(blank=True, null=True)  # flexible metadata storage
+    tags = models.JSONField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 

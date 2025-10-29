@@ -21,8 +21,27 @@ from django.core.mail.backends.smtp import EmailBackend
 load_dotenv()
 
 #all env variables
-AWS_ACCESS_KEY_ID=os.getenv('AWS_ACCESS_KEY_ID')
-AWS_SECRET_ACCESS_KEY=os.getenv('AWS_SECRET_ACCESS_KEY')
+AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
+AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
+AWS_STORAGE_BUCKET_NAME = "drpathcare"
+AWS_S3_REGION_NAME = "ap-south-1"
+AWS_S3_SIGNATURE_VERSION = "s3v4"
+AWS_S3_ADDRESSING_STYLE = "path"
+
+AWS_DEFAULT_ACL = "public-read"
+AWS_QUERYSTRING_AUTH = False
+AWS_S3_FILE_OVERWRITE = False
+AWS_S3_VERIFY = True
+
+AWS_S3_CUSTOM_DOMAIN = f"{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com"
+
+MEDIA_URL = f"https://{AWS_S3_CUSTOM_DOMAIN}/"
+
+AWS_S3_VERIFY = True
+MEDIA_URL = f"https://{AWS_STORAGE_BUCKET_NAME}.s3.{AWS_S3_REGION_NAME}.amazonaws.com/"
+
+
+# Media settings
 AWS_DEFAULT_REGION=os.getenv('AWS_DEFAULT_REGION')
 SMS_URL = os.getenv('SMS_URL')
 SMS_USERNAME = os.getenv('SMS_USERNAME')
@@ -31,6 +50,7 @@ RAZORPAY_KEY_ID = os.getenv('RAZORPAY_KEY_ID')
 RAZORPAY_KEY_SECRET = os.getenv('RAZORPAY_KEY_SECRET')
 GETA_API_KEY = os.getenv('GETA_API_KEY')
 BASE_URL = os.getenv('BASE_URL')
+
 
 class TrustAllEmailBackend(EmailBackend):
     def open(self):
@@ -147,7 +167,6 @@ default ={
             'HOST': os.getenv('DB_HOST'),
             'PORT': os.getenv('DB_PORT')
         }
-# print(default)
 
 DATABASES = {
     # 'default': {
@@ -223,8 +242,9 @@ REST_FRAMEWORK = {
     "PAGE_SIZE": 10,  # default items per page
 }
 
+# ==== STATIC FILES ====
+STATIC_URL = '/static/'
+STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
-AWS_QUERYSTRING_AUTH = False  # so URLs are public
-AWS_DEFAULT_ACL = None
 
 DEFAULT_FILE_STORAGE = "storages.backends.s3boto3.S3Boto3Storage"

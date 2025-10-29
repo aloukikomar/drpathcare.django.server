@@ -2,7 +2,7 @@ from rest_framework import serializers
 from decimal import Decimal
 from .models import (
     Cart, CartItem, Coupon, CouponRedemption, 
-    Booking, BookingItem, BookingActionTracker
+    Booking, BookingItem, BookingActionTracker,BookingDocument
 )
 from users.serializers import (
     PatientSerializer, AddressSerializer, UserSerializer
@@ -193,3 +193,44 @@ class CartSerializer(serializers.ModelSerializer):
         read_only_fields = ("created_at", "updated_at")
 
 
+class BookingDocumentSerializer(serializers.ModelSerializer):
+    uploaded_by_name = serializers.SerializerMethodField()
+    booking_code = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BookingDocument
+        fields = [
+            "id",
+            "booking",
+            "booking_code",
+            "name",
+            "description",
+            "file_url",
+            "doc_type",
+            "uploaded_by",
+            "uploaded_by_name",
+            "created_at",
+        ]
+         # ✅ file_url is now READ-ONLY
+        read_only_fields = [
+            "id",
+            "uploaded_by",
+            "uploaded_by_name",
+            "created_at",
+            "booking_code",
+            "file_url",
+        ]
+
+    def get_uploaded_by_name(self, obj):
+        user = getattr(obj, "uploaded_by", None)
+        if not user:
+            return None
+        return f"{user.first_name or ''} {user.last_name or ''}".strip() or user.email or user.username
+
+    def get_booking_code(self, obj):
+        return getattr(obj.booking, "ref_id", None) or str(obj.booking_id)
+
+    def validate(self, attrs):
+        if not attrs.get("name"):
+            raise serializers.ValidationError({"name": "Document name is required."})
+        return attrs
