@@ -1,6 +1,6 @@
 # views.py
 from rest_framework import viewsets, mixins,status
-from rest_framework.permissions import IsAuthenticated
+from rest_framework.permissions import IsAuthenticated,AllowAny
 from .models import LabTest, Profile, Package,LabCategory
 from .serializers import LabTestSerializer, ProfileSerializer, PackageSerializer, LabCategorySerializer
 from drpathcare.pagination import StandardResultsSetPagination
@@ -8,6 +8,8 @@ import pandas as pd
 from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import filters 
+from django.db.models import Q
+from rest_framework.decorators import api_view, permission_classes, authentication_classes
 
 
 class BaseLabViewSet(viewsets.GenericViewSet):
@@ -15,8 +17,8 @@ class BaseLabViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["name", "test_code", "category__name"]
-    ordering_fields = ["name", "test_code", "category__name", "price", "created_at"]
+    search_fields = ["name", "category__name","is_featured"]
+    ordering_fields = ["name", "category__name", "price", "created_at"]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -94,16 +96,19 @@ class PackageCRMViewSet(BaseLabViewSet, viewsets.ModelViewSet):
 class LabTestClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = LabTest.objects.all()
     serializer_class = LabTestSerializer
+    permission_classes = [AllowAny]
 
 
 class ProfileClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = Profile.objects.all()
     serializer_class = ProfileSerializer
+    permission_classes = [AllowAny]
 
 
 class PackageClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = Package.objects.all()
     serializer_class = PackageSerializer
+    permission_classes = [AllowAny]
 
 
 class LabCategoryViewSet(viewsets.ReadOnlyModelViewSet):
@@ -130,3 +135,68 @@ class LabCategoryViewSet(viewsets.ReadOnlyModelViewSet):
         if entity_type:
             qs = qs.filter(entity_type=entity_type)
         return qs
+
+
+@api_view(['GET'])
+@authentication_classes([])
+@permission_classes([AllowAny])
+def global_search(request):
+    query = request.GET.get('q', '').strip()
+    if not query:
+        return Response({"error": "Missing query parameter ?q="}, status=status.HTTP_400_BAD_REQUEST)
+
+    limit = 15
+    results = []
+
+    # Search Lab Tests
+    lab_tests = (
+        LabTest.objects
+        .filter(Q(name__icontains=query))
+        .values('id', 'name')
+        [:5]
+    )
+    for item in lab_tests:
+        results.append({
+            "id": item["id"],
+            "name": item["name"],
+            "type": "LabTest"
+        })
+
+    # Search Profiles
+    profiles = (
+        Profile.objects
+        .filter(Q(name__icontains=query))
+        .values('id', 'name')
+        [:5]
+    )
+    for item in profiles:
+        results.append({
+            "id": item["id"],
+            "name": item["name"],
+            "type": "Profile"
+        })
+
+    # Search Packages
+    packages = (
+        Package.objects
+        .filter(Q(name__icontains=query))
+        .values('id', 'name')
+        [:5]
+    )
+    for item in packages:
+        results.append({
+            "id": item["id"],
+            "name": item["name"],
+            "type": "Package"
+        })
+
+    # Combine and trim total results to 15
+    results = results[:limit]
+
+    return Response({
+        "query": query,
+        "count": len(results),
+        "results": results
+    })
+
+

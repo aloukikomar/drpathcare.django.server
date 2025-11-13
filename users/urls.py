@@ -9,7 +9,8 @@ from users.apis import (
     AddressViewSet,
     SendOTPView,
     VerifyOTPView,
-    LocationViewSet
+    LocationViewSet,
+    VerifyCustomerOTPView
 )
 
 # -----------------------------
@@ -43,6 +44,7 @@ urlpatterns = [
     # Auth endpoints (common for both sides)
     path("auth/send-otp/", SendOTPView.as_view(), name="send-otp"),
     path("auth/verify-otp/", VerifyOTPView.as_view(), name="verify-otp"),
+    path("auth/verify-customer-otp/", VerifyCustomerOTPView.as_view(), name="verify-customer-otp"),
     path("auth/token/refresh/", TokenRefreshView.as_view(), name="token-refresh"),
     
 ]
