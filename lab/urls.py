@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     LabTestCRMViewSet, ProfileCRMViewSet, PackageCRMViewSet,
-    LabTestClientViewSet, ProfileClientViewSet, PackageClientViewSet,LabCategoryViewSet
+    LabTestClientViewSet, ProfileClientViewSet, PackageClientViewSet,LabCategoryViewSet,global_search
 )
 
 crm_router = DefaultRouter()
@@ -20,4 +20,5 @@ client_router.register(r'lab-packages', PackageClientViewSet, basename='client-p
 urlpatterns = [
     path('crm/', include(crm_router.urls)),
     path('client/', include(client_router.urls)),
+    path('client/search/', global_search, name='client-global-search'),
 ]

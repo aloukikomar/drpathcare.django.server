@@ -33,13 +33,37 @@ class BookingActionAdmin(admin.ModelAdmin):
 
 @admin.register(Cart)
 class CartAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "created_at", "updated_at")
-    search_fields = ("user__email",)
+    list_display = ("id", "user", "total_items_display", "total_price_display", "created_at", "updated_at")
+    search_fields = ("user__email", "user__mobile")
+    readonly_fields = ("created_at", "updated_at")
+
+    def total_items_display(self, obj):
+        return obj.items.count()
+    total_items_display.short_description = "Items"
+
+    def total_price_display(self, obj):
+        return f"₹{obj.total_price:.2f}"
+    total_price_display.short_description = "Total Price"
+
 
 @admin.register(CartItem)
 class CartItemAdmin(admin.ModelAdmin):
-    list_display = ("id", "cart", "patient", "lab_test", "profile", "package", "quantity", "base_price", "offer_price")
-    search_fields = ("cart__id", "patient__first_name", "lab_test__name")
+    list_display = (
+        "id",
+        "cart",
+        "product_name",
+        "product_type",
+        "base_price",
+        "offer_price",
+        "created_at",
+    )
+    list_filter = ("product_type",)
+    search_fields = ("cart__user__mobile", "product_name", "product_type")
+    readonly_fields = ("created_at",)
+
+    def get_queryset(self, request):
+        qs = super().get_queryset(request)
+        return qs.select_related("cart", "cart__user")
 
 @admin.register(Coupon)
 class CouponAdmin(admin.ModelAdmin):

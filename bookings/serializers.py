@@ -165,32 +165,35 @@ class BookingSerializer(serializers.ModelSerializer):
 # Cart & CartItem Serializers
 # -------------------------
 class CartItemSerializer(serializers.ModelSerializer):
-    patient_detail = PatientSerializer(source="patient", read_only=True)
-    lab_test_detail = LabTestSerializer(source="lab_test", read_only=True)
-    profile_detail = ProfileSerializer(source="profile", read_only=True)
-    package_detail = PackageSerializer(source="package", read_only=True)
+    effective_price = serializers.SerializerMethodField()
 
     class Meta:
         model = CartItem
         fields = [
-            "id", "cart", "patient", "patient_detail",
-            "lab_test", "lab_test_detail",
-            "profile", "profile_detail",
-            "package", "package_detail",
-            "quantity", "base_price", "offer_price",
-            "created_at", "updated_at",
+            "id",
+            "product_type",
+            "product_id",
+            "product_name",
+            "base_price",
+            "offer_price",
+            "effective_price",
+            "created_at",
         ]
-        read_only_fields = ("created_at", "updated_at")
+
+    def get_effective_price(self, obj):
+        return obj.effective_price
 
 
 class CartSerializer(serializers.ModelSerializer):
     items = CartItemSerializer(many=True, read_only=True)
-    user_email = serializers.CharField(source="user.email", read_only=True)
+    total_price = serializers.DecimalField(max_digits=12, decimal_places=2, read_only=True)
+    total_items = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = Cart
-        fields = ["id", "user", "user_email", "items", "created_at", "updated_at"]
-        read_only_fields = ("created_at", "updated_at")
+        fields = ["id", "user", "items", "total_price", "total_items", "created_at"]
+        read_only_fields = ["user", "created_at"]
+
 
 
 class BookingDocumentSerializer(serializers.ModelSerializer):

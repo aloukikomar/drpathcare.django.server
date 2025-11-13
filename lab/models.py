@@ -42,6 +42,8 @@ class LabTest(models.Model):
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    is_featured = models.BooleanField(default=False)
+
     def __str__(self):
         return f"{self.test_code} - {self.name}" if self.test_code else self.name
 
@@ -56,7 +58,10 @@ class Profile(models.Model):
     )
     tests = models.ManyToManyField(LabTest, related_name="profiles")
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     image = models.ForeignKey(ContentManager, on_delete=models.SET_NULL, null=True, blank=True, related_name="profiles")
+
+    is_featured = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name
@@ -72,7 +77,10 @@ class Package(models.Model):
     profiles = models.ManyToManyField(Profile, related_name="packages", blank=True)
     tests = models.ManyToManyField(LabTest, related_name="packages", blank=True)
     price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     image = models.ForeignKey(ContentManager, on_delete=models.SET_NULL, null=True, blank=True, related_name="packages")
+
+    is_featured = models.BooleanField(default=False)
 
     def __str__(self):
         return self.name

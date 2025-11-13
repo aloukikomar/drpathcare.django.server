@@ -27,7 +27,7 @@ class ProfileSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Profile
-        fields = ["id", "name", "description", "category", "category_name",
+        fields = ["id", "name", "description", "category", "category_name","offer_price",
                   "price", "image", "image_url", "tests", "test_ids"]
 
 
@@ -48,4 +48,4 @@ class PackageSerializer(serializers.ModelSerializer):
         model = Package
         fields = ["id", "name", "description", "category", "category_name",
                   "price", "image", "image_url", "profiles", "tests",
-                  "profile_ids", "test_ids"]
+                  "profile_ids", "test_ids","offer_price"]
