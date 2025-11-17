@@ -85,3 +85,18 @@ class CartViewSet(viewsets.ModelViewSet):
         items = cart.items.all()
         serializer = CartItemSerializer(items, many=True, context={"request": request})
         return Response(serializer.data)
+
+    @action(detail=False, methods=["delete"], url_path="items/(?P<item_id>[^/.]+)")
+    def delete_item(self, request, item_id=None):
+        cart, _ = Cart.objects.get_or_create(user=request.user)
+
+        try:
+            item = CartItem.objects.get(cart=cart, id=item_id)
+        except CartItem.DoesNotExist:
+            return Response(
+                {"error": "Cart item not found."},
+                status=status.HTTP_404_NOT_FOUND
+            )
+
+        item.delete()
+        return Response({"detail": "Item removed from cart"}, status=status.HTTP_204_NO_CONTENT)

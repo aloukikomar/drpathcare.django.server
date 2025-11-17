@@ -80,7 +80,7 @@ def send_booking_notifications(
         "status":booking.customer_status,
         "final_amount": booking.final_amount,
         "scheduled_date": booking.scheduled_date,
-        "scheduled_time": booking.scheduled_time,
+        "scheduled_time_slot": booking.scheduled_time_slot,
         "tests":str(booking.items.count()) + " confirmed Tests",
         "payment_status":booking.payment_status,
         "base_url": getattr(settings, "BASE_URL", "https://drpathcare.com"),

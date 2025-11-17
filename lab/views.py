@@ -93,6 +93,12 @@ class PackageCRMViewSet(BaseLabViewSet, viewsets.ModelViewSet):
 
 
 # Client = Read only
+
+class LabCategoryClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
+    queryset = LabCategory.objects.all().order_by("name")
+    serializer_class = LabCategorySerializer
+    permission_classes = [AllowAny]
+
 class LabTestClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = LabTest.objects.all()
     serializer_class = LabTestSerializer

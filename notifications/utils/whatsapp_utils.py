@@ -67,7 +67,7 @@ def send_whatsapp_template(
                     {"type": "text", "text": str(body_params['status'])},
                     {"type": "text", "text": str(body_params['final_amount'])},
                     {"type": "text", "text": str(body_params['scheduled_date'])},
-                    {"type": "text", "text": str(body_params['scheduled_time'])},
+                    {"type": "text", "text": str(body_params['scheduled_time_slot'])},
                 ],
             })
         else:
@@ -80,7 +80,7 @@ def send_whatsapp_template(
                     {"type": "text", "text": str(body_params['payment_status'])},
                     {"type": "text", "text": str(body_params['final_amount'])},
                     {"type": "text", "text": str(body_params['scheduled_date'])},
-                    {"type": "text", "text": str(body_params['scheduled_time'])},
+                    {"type": "text", "text": str(body_params['scheduled_time_slot'])},
                 ],
             })
     payload = {

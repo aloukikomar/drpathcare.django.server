@@ -19,15 +19,26 @@ class AddressViewSet(viewsets.ModelViewSet):
 
 
     def get_queryset(self):
-        # Users only see their own addresses
-        customer_id = self.request.query_params.get("customer")
         user = self.request.user
+        customer_id = self.request.query_params.get("customer")
         qs = self.queryset
-        if user.is_staff:
+
+        # Detect whether the request came from CRM or CLIENT router
+        is_crm_request = self.request.path.startswith("/api/crm/")
+
+        # ------------------------------
+        # CRM MODE — staff with full access
+        # ------------------------------
+        if is_crm_request:
             if customer_id:
-                qs = qs.filter(user_id=customer_id)
+                return qs.filter(user_id=customer_id)
             return qs
+
+        # ------------------------------
+        # CLIENT MODE — staff behaves like customer
+        # ------------------------------
         return qs.filter(user=user)
+
     
 
 class LocationViewSet(viewsets.ModelViewSet):

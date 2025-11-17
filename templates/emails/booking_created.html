@@ -104,7 +104,7 @@
                 <div class="details">
                     <p><strong>Booking ID:</strong> {{ booking.ref_id }}</p>
                     <p><strong>Scheduled Date:</strong> {{ booking.scheduled_date|date:"F d, Y" }}</p>
-                    <p><strong>Scheduled Time:</strong> {{ booking.scheduled_time|time:"H:i A" }}</p>
+                    <p><strong>Scheduled Time:</strong> {{ booking.scheduled_time_slot }}</p>
                     <p><strong>Total Amount:</strong> ₹{{ booking.final_amount }}</p>
                 </div>
 
