@@ -3,8 +3,7 @@ from decimal import Decimal
 from django.db import models
 from django.conf import settings
 from bookings.models.coupons import Coupon
-
-from users.models import Address  # adjust import path if different
+from users.models import Address  # adjust if different
 
 
 class Booking(models.Model):
@@ -50,6 +49,7 @@ class Booking(models.Model):
     ]
 
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+
     ref_id = models.CharField(
         max_length=20,
         unique=True,
@@ -57,25 +57,38 @@ class Booking(models.Model):
         blank=True,
         help_text="Human-readable reference ID (e.g., DP2510080001)"
     )
+
     user = models.ForeignKey(
-        settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="bookings"
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        related_name="bookings"
     )
+
     current_agent = models.ForeignKey(
         settings.AUTH_USER_MODEL,
         on_delete=models.SET_NULL,
         null=True,
         blank=True,
-        related_name="assigned_bookings",
+        related_name="assigned_bookings"
     )
+
     address = models.ForeignKey(
-        Address, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
+        Address,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bookings"
     )
 
     coupon = models.ForeignKey(
-        Coupon, on_delete=models.SET_NULL, null=True, blank=True, related_name="bookings"
+        Coupon,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="bookings"
     )
 
-    # 🧮 Calculated totals (write only once during booking creation/update)
+    # 🧮 Calculated totals
     discount_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     base_total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     offer_total = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
@@ -90,7 +103,14 @@ class Booking(models.Model):
     payment_method = models.CharField(max_length=30, choices=PAYMENT_METHOD_CHOICES, null=True, blank=True)
 
     scheduled_date = models.DateField(null=True, blank=True)
-    scheduled_time = models.TimeField(null=True, blank=True)
+
+    # 🆕 Replaced scheduled_time
+    scheduled_time_slot = models.CharField(
+        max_length=50,
+        null=True,
+        blank=True,
+        help_text="Example: '6-8 AM', '10-12 AM', or custom text"
+    )
 
     remarks = models.TextField(blank=True, null=True)
 

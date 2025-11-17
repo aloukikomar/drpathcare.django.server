@@ -98,7 +98,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "coupon", "coupon_code","coupon_detail", "discount_amount", "coupon_discount", "admin_discount",
             "base_total", "offer_total", "final_amount", "total_savings",
             "status", "payment_status", "payment_method",
-            "scheduled_date", "scheduled_time", "remarks",
+            "scheduled_date", "scheduled_time_slot", "remarks",
             "items", "create_items", "actions",
             "created_at", "updated_at", "user_detail",
         ]

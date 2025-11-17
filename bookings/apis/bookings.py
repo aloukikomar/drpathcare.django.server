@@ -159,14 +159,14 @@ class BookingViewSet(viewsets.ModelViewSet):
         # === 4️⃣ Update Schedule (NEW) ===
         elif action_type == "update_schedule":
             new_date = data.get("scheduled_date")
-            new_time = data.get("scheduled_time")
+            new_time = data.get("scheduled_time_slot")
             if not new_date or not new_time:
                 raise ValidationError({"schedule": "Both date and time are required."})
 
             booking.scheduled_date = new_date
-            booking.scheduled_time = new_time
+            booking.scheduled_time_slot = new_time
             booking.status = 'open'
-            booking.save(update_fields=["scheduled_date", "scheduled_time","status"])
+            booking.save(update_fields=["scheduled_date", "scheduled_time_slot","status"])
 
         # === 5️⃣ Update Items (Revalidated with get_booking_calculations) ===
         elif action_type == "update_items":
