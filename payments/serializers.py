@@ -6,7 +6,7 @@ from users.serializers import UserSerializer
 
 
 class BookingPaymentSerializer(serializers.ModelSerializer):
-    booking_detail = BookingSerializer(source="booking", read_only=True)
+    # booking_detail = BookingSerializer(source="booking", read_only=True)
     user_detail = UserSerializer(source="user", read_only=True)
 
     class Meta:
@@ -14,7 +14,7 @@ class BookingPaymentSerializer(serializers.ModelSerializer):
         fields = [
             "id",
             "booking",
-            "booking_detail",
+            # "booking_detail",
             "user",
             "user_detail",
             "amount",

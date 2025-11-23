@@ -51,3 +51,15 @@ class SMSTemplate(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class Enquiry(models.Model):
+    name = models.CharField(max_length=100)
+    mobile = models.CharField(max_length=15)
+    enquiry = models.TextField()
+    is_active = models.BooleanField(default=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.name} ({self.mobile})"

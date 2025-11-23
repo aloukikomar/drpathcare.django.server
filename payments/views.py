@@ -18,6 +18,29 @@ from django.utils.html import escape
 from django.views import View
 import time
 
+class ClientBookingPaymentViewSet(viewsets.ReadOnlyModelViewSet):
+    serializer_class = BookingPaymentSerializer
+    permission_classes = [IsAuthenticated]
+    pagination_class = StandardResultsSetPagination
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["transaction_id", "gateway_order_id", "booking__id"]
+    ordering_fields = ["created_at", "amount", "status"]
+
+    def get_queryset(self):
+        user = self.request.user
+        return BookingPayment.objects.filter(
+            booking__user=user
+        ).select_related("booking")
+
+    def retrieve(self, request, *args, **kwargs):
+        instance = self.get_object()
+
+        # Object-level security
+        if instance.booking.user != request.user:
+            return Response({"detail": "Not allowed"}, status=status.HTTP_403_FORBIDDEN)
+
+        return super().retrieve(request, *args, **kwargs)
+
 
 
 class BookingPaymentViewSet(viewsets.ModelViewSet):

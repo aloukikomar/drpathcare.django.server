@@ -1,6 +1,6 @@
 # notification/admin.py
 from django.contrib import admin
-from .models import Notification, SMSTemplate
+from .models import Notification, SMSTemplate,Enquiry
 
 
 @admin.register(SMSTemplate)
@@ -21,3 +21,10 @@ class NotificationAdmin(admin.ModelAdmin):
     def has_add_permission(self, request):
         # Prevent adding notifications manually (system generated only)
         return False
+
+
+@admin.register(Enquiry)
+class EnquiryAdmin(admin.ModelAdmin):
+    list_display = ("name", "mobile", "created_at")
+    search_fields = ("name", "mobile", "enquiry")
+    ordering = ("-created_at",)

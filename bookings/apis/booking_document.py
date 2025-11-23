@@ -1,5 +1,5 @@
 # bookings/apis.py
-from rest_framework import viewsets
+from rest_framework import viewsets,permissions
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.exceptions import ValidationError
 from bookings.models import BookingDocument
@@ -25,3 +25,49 @@ class BookingDocumentViewSet(viewsets.ModelViewSet):
 
         file_url = upload_to_s3(file_obj, prefix="booking_docs/")
         serializer.save(file_url=file_url, uploaded_by=self.request.user)
+
+
+class ClientBookingDocumentViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    CLIENT API:
+    - GET /api/client/booking-documents/          → list user's documents
+    - GET /api/client/booking-documents/<id>/     → retrieve single document
+    """
+
+    serializer_class = BookingDocumentSerializer
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        booking_id = self.request.query_params.get("booking")
+
+        qs = BookingDocument.objects.filter(
+            booking__user=user
+        ).select_related("booking").order_by("-created_at")
+
+        if booking_id:
+            qs = qs.filter(booking_id=booking_id)
+
+        return qs
+
+    # Disable create/update/delete for client
+    def create(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Document upload is not allowed in client mode."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def update(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Update not allowed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )
+
+    def partial_update(self, request, *args, **kwargs):
+        return self.update(request, *args, **kwargs)
+
+    def destroy(self, request, *args, **kwargs):
+        return Response(
+            {"detail": "Delete not allowed."},
+            status=status.HTTP_405_METHOD_NOT_ALLOWED,
+        )

@@ -1,7 +1,7 @@
 from rest_framework import viewsets
-from rest_framework.permissions import IsAuthenticated
-from .models import Notification
-from .serializers import NotificationSerializer
+from rest_framework.permissions import IsAuthenticated,AllowAny
+from .models import Notification,Enquiry
+from .serializers import NotificationSerializer,EnquirySerializer
 from drpathcare.pagination import StandardResultsSetPagination
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -22,3 +22,17 @@ class NotificationViewSet(viewsets.ModelViewSet):
         if status:
             qs = qs.filter(status=status)
         return qs
+
+
+class EnquiryViewSet(viewsets.ModelViewSet):
+    queryset = Enquiry.objects.all().order_by("-created_at")
+    serializer_class = EnquirySerializer
+    pagination_class = StandardResultsSetPagination
+    permission_classes = [AllowAny]
+
+    def get_queryset(self):
+        # ✔ Only staff can see enquiries
+        if not self.request.user.is_staff:
+            return Enquiry.objects.none()
+
+        return super().get_queryset()

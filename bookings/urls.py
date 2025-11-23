@@ -9,6 +9,8 @@ from bookings.apis import (
     CartViewSet,
     CouponViewSet,
     CouponRedemptionViewSet,
+    ClientBookingViewSet,
+    ClientBookingDocumentViewSet
 )
 
 # -----------------------------------------------------
@@ -18,8 +20,10 @@ router = DefaultRouter()
 
 # Booking-related routes
 router.register(r'bookings', BookingViewSet, basename='booking')
+router.register(r'client/bookings', ClientBookingViewSet, basename='client-booking')
 router.register(r'booking-items', BookingItemViewSet, basename='booking-item')
 router.register(r'booking-documents', BookingDocumentViewSet, basename='booking-document')
+router.register(r'client/booking-documents', ClientBookingDocumentViewSet, basename='client-booking-document')
 
 # Cart & Coupon routes
 router.register(r'carts', CartViewSet, basename='cart')
