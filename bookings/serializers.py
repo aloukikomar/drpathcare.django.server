@@ -4,6 +4,7 @@ from .models import (
     Cart, CartItem, Coupon, CouponRedemption, 
     Booking, BookingItem, BookingActionTracker,BookingDocument
 )
+from payments.models import BookingPayment
 from users.serializers import (
     PatientSerializer, AddressSerializer, UserSerializer
 )
@@ -76,6 +77,59 @@ class BookingActionTrackerSerializer(serializers.ModelSerializer):
         fields = ["id", "booking", "user", "user_email", "action", "notes", "created_at"]
 
 
+class ClientPaymentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingPayment
+        fields = [
+            "id", "amount", "status", "method",
+            "payment_link", "gateway_payment_id",
+            "gateway_order_id", "created_at"
+        ]
+
+
+class ClientDocumentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookingDocument
+        fields = [
+            "id", "name", "file_url", "doc_type", "created_at"
+        ]
+
+
+class ClientBookingSerializer(serializers.ModelSerializer):
+    user_detail = UserSerializer(source="user", read_only=True)
+    address_detail = AddressSerializer(source="address", read_only=True)
+
+    items = BookingItemSerializer(many=True, read_only=True)
+
+    # 🔥 FIX: removed redundant `source='payments'`
+    payments = ClientPaymentSerializer(many=True, read_only=True)
+
+    # 🔥 FIX: removed redundant `source='documents'`
+    documents = ClientDocumentSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id", "ref_id",
+            "status", "customer_status", "payment_status", "payment_method",
+            "scheduled_date", "scheduled_time_slot",
+            "remarks",
+            
+            # Totals
+            "base_total", "offer_total", "total_savings",
+            "final_amount", "discount_amount",
+
+            # Relations
+            "user_detail", "address_detail",
+
+            # Nested
+            "items", "payments", "documents",
+
+            "created_at", "updated_at",
+        ]
+        read_only_fields = fields
+
+
 # -------------------------
 # Booking Serializer
 # -------------------------
@@ -97,7 +151,7 @@ class BookingSerializer(serializers.ModelSerializer):
             "id","ref_id", "user", "user_email", "current_agent", "address", "address_detail",
             "coupon", "coupon_code","coupon_detail", "discount_amount", "coupon_discount", "admin_discount",
             "base_total", "offer_total", "final_amount", "total_savings",
-            "status", "payment_status", "payment_method",
+            "status","customer_status", "payment_status", "payment_method",
             "scheduled_date", "scheduled_time_slot", "remarks",
             "items", "create_items", "actions",
             "created_at", "updated_at", "user_detail",

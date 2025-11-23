@@ -1,7 +1,20 @@
 from rest_framework.routers import DefaultRouter
-from .views import ContentManagerViewSet
+from django.urls import path, include
 
-router = DefaultRouter()
-router.register(r'content', ContentManagerViewSet, basename='content')
+from content_management.views import (
+    ContentManagerViewSet,
+    PublicContentViewSet
+)
 
-urlpatterns = router.urls
+# CRM router (full CRUD)
+crm_router = DefaultRouter()
+crm_router.register(r'content', ContentManagerViewSet, basename='crm-content')
+
+# Client router (GET only)
+client_router = DefaultRouter()
+client_router.register(r'content', PublicContentViewSet, basename='client-content')
+
+urlpatterns = [
+    path("crm/", include(crm_router.urls)),
+    path("client/", include(client_router.urls)),
+]

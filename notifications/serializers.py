@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Notification
+from .models import Enquiry
 
 class NotificationSerializer(serializers.ModelSerializer):
     recipient_mobile = serializers.CharField(source="recipient.mobile", read_only=True)
@@ -13,3 +14,9 @@ class NotificationSerializer(serializers.ModelSerializer):
             "content_type", "object_id", "created_at", "updated_at"
         ]
         read_only_fields = ["status", "error_message", "created_at", "updated_at"]
+
+
+class EnquirySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Enquiry
+        fields = ["id", "name", "mobile", "enquiry", "created_at"]
