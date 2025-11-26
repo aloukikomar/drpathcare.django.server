@@ -19,4 +19,4 @@ class NotificationSerializer(serializers.ModelSerializer):
 class EnquirySerializer(serializers.ModelSerializer):
     class Meta:
         model = Enquiry
-        fields = ["id", "name", "mobile", "enquiry", "created_at"]
+        fields = "__all__"

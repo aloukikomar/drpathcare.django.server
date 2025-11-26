@@ -3,7 +3,8 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from .views import (
     LabTestCRMViewSet, ProfileCRMViewSet, PackageCRMViewSet,
-    LabTestClientViewSet, ProfileClientViewSet, PackageClientViewSet,LabCategoryViewSet,global_search,LabCategoryClientViewSet
+    LabTestClientViewSet, ProfileClientViewSet, PackageClientViewSet,LabCategoryViewSet,global_search,LabCategoryClientViewSet,
+    LabTestBulkUploadAPIView
 )
 
 crm_router = DefaultRouter()
@@ -22,4 +23,5 @@ urlpatterns = [
     path('crm/', include(crm_router.urls)),
     path('client/', include(client_router.urls)),
     path('client/search/', global_search, name='client-global-search'),
+    path("crm/lab-tests-bulk/", LabTestBulkUploadAPIView.as_view(), name="lab-tests-bulk"),
 ]

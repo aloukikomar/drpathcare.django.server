@@ -10,6 +10,46 @@ from users.serializers import (
 )
 from lab.serializers import LabTestSerializer, ProfileSerializer, PackageSerializer
 
+
+
+class BookingFastListSerializer(serializers.ModelSerializer):
+    user_str = serializers.SerializerMethodField()
+    payment_count = serializers.IntegerField(read_only=True)
+    document_count = serializers.IntegerField(read_only=True)
+
+    class Meta:
+        model = Booking
+        fields = [
+            "id",
+            "ref_id",
+            "user_str",
+            "status",
+            "payment_status",
+            "final_amount",
+            "created_at",
+            "scheduled_date",
+            "scheduled_time_slot",
+            "payment_count",
+            "document_count",
+        ]
+
+    def get_user_str(self, obj):
+        first = obj.user.first_name or ""
+        last = obj.user.last_name or ""
+        mobile = obj.user.mobile or ""
+
+        # Mask mobile: 800xxxx271
+        if len(mobile) >= 6:
+            masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
+        else:
+            masked = mobile
+
+        full_name = f"{first} {last}".strip()
+        if not full_name:
+            full_name = masked
+
+        return f"{full_name} ({masked})"
+
 # -------------------------
 # Coupon Serializers
 # -------------------------
@@ -291,3 +331,33 @@ class BookingDocumentSerializer(serializers.ModelSerializer):
         if not attrs.get("name"):
             raise serializers.ValidationError({"name": "Document name is required."})
         return attrs
+
+
+
+class BookingActionTrackerListSerializer(serializers.ModelSerializer):
+    booking_ref = serializers.CharField(source="booking.ref_id", read_only=True)
+    user_str = serializers.SerializerMethodField()
+
+    class Meta:
+        model = BookingActionTracker
+        fields = [
+            "id",
+            "booking",
+            "booking_ref",
+            "user_str",
+            "action",
+            "notes",
+            "created_at",
+        ]
+
+    def get_user_str(self, obj):
+        if not obj.user:
+            return "system"
+        mobile = obj.user.mobile or ""
+        if len(mobile) >= 6:
+            masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
+        else:
+            masked = mobile
+        name = (obj.user.first_name or "") + " " + (obj.user.last_name or "")
+        name = name.strip() or masked
+        return f"{name} ({masked})"

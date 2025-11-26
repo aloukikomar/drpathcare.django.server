@@ -10,6 +10,12 @@ from rest_framework.response import Response
 from rest_framework import filters 
 from django.db.models import Q
 from rest_framework.decorators import api_view, permission_classes, authentication_classes
+from rest_framework.parsers import MultiPartParser, FormParser
+from rest_framework.views import APIView
+from openpyxl import load_workbook
+from decimal import Decimal
+
+
 
 
 class BaseLabViewSet(viewsets.GenericViewSet):
@@ -206,3 +212,150 @@ def global_search(request):
     })
 
 
+class LabTestBulkUploadAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # CRM-only
+
+    REQUIRED_COLUMNS = [
+        "name",
+        "test_code",
+        "sample_type",
+        "special_instruction",
+        "temperature",
+        "method",
+        "reported_on",
+        "category",
+        "price",
+        "offer_price",
+        "description",
+    ]
+
+    def post(self, request):
+        file = request.FILES.get("file")
+        if not file:
+            return Response({"error": "No file uploaded"}, status=400)
+
+        if not file.name.endswith(".xlsx"):
+            return Response({"error": "Only .xlsx files allowed"}, status=400)
+
+        try:
+            wb = load_workbook(file)
+            ws = wb.active
+        except Exception as e:
+            return Response({"error": f"Failed to read Excel file: {e}"}, status=400)
+
+        # --- Read header row ---
+        header = [str(cell.value).strip() if cell.value else "" for cell in ws[1]]
+
+        # --- Validate required columns ---
+        missing = [col for col in self.REQUIRED_COLUMNS if col not in header]
+        if missing:
+            return Response(
+                {"error": f"Missing required columns: {', '.join(missing)}"},
+                status=400
+            )
+
+        # Mapping column → index
+        col_map = {col: header.index(col) for col in header}
+
+        created_count = 0
+        updated_count = 0
+        errors = []
+
+        # --- Process rows ---
+        for idx, row in enumerate(ws.iter_rows(min_row=2), start=2):
+
+            def get(col):
+                return row[col_map[col]].value if col_map[col] < len(row) else None
+
+            # --------------------------
+            # Name
+            # --------------------------
+            name = (get("name") or "").strip()
+            if not name:
+                errors.append(f"Row {idx}: Missing name")
+                continue
+
+            # --------------------------
+            # Category
+            # --------------------------
+            category_name = (get("category") or "").strip()
+            if not category_name:
+                errors.append(f"Row {idx}: Missing category")
+                continue
+
+            category_obj, _ = LabCategory.objects.get_or_create(
+                name=category_name,
+                entity_type="lab_test"
+            )
+
+            # --------------------------
+            # Retrieve or create LabTest (SAFE)
+            # --------------------------
+            try:
+                test_obj = LabTest.objects.get(name=name)
+                created = False
+            except LabTest.DoesNotExist:
+                test_obj = LabTest(name=name)
+                created = True
+
+            # --------------------------
+            # Assign fields (common for update & create)
+            # --------------------------
+            test_obj.test_code = get("test_code") or ""
+            test_obj.sample_type = get("sample_type") or ""
+            test_obj.special_instruction = get("special_instruction") or ""
+            test_obj.method = get("method") or ""
+            test_obj.temperature = get("temperature") or ""
+            test_obj.description = get("description") or ""
+            test_obj.reported_on = get("reported_on") or ""
+            test_obj.category = category_obj
+
+            # --------------------------
+            # PRICE (must exist)
+            # --------------------------
+            price_value = int(get("price"))
+            if price_value in [None, ""]:
+                errors.append(f"Row {idx}: Missing price")
+                continue
+
+            try:
+                print(price_value)
+                test_obj.price = Decimal(price_value)
+            except Exception:
+                errors.append(f"Row {idx}: Invalid price")
+                break
+
+            # --------------------------
+            # OFFER PRICE (optional)
+            # --------------------------
+            offer_price_val = get("offer_price")
+            try:
+                test_obj.offer_price = Decimal(offer_price_val) if offer_price_val else None
+            except Exception:
+                errors.append(f"Row {idx}: Invalid offer_price")
+                continue
+
+            # --------------------------
+            # Save record
+            # --------------------------
+            try:
+                test_obj.save()
+            except Exception as e:
+                errors.append(f"Row {idx}: Save failed - {e}")
+                continue
+
+            if created:
+                created_count += 1
+            else:
+                updated_count += 1
+
+        # --- Final response ---
+        return Response(
+            {
+                "status": "Bulk upload completed",
+                "created": created_count,
+                "updated": updated_count,
+                "errors": errors,
+            },
+            status=200,
+        )

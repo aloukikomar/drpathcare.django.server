@@ -6,11 +6,13 @@ from bookings.apis import (
     BookingViewSet,
     BookingItemViewSet,
     BookingDocumentViewSet,
+    BookingFastListViewSet,
     CartViewSet,
     CouponViewSet,
     CouponRedemptionViewSet,
     ClientBookingViewSet,
-    ClientBookingDocumentViewSet
+    ClientBookingDocumentViewSet,
+    BookingActionTrackerCRMViewSet
 )
 
 # -----------------------------------------------------
@@ -20,10 +22,16 @@ router = DefaultRouter()
 
 # Booking-related routes
 router.register(r'bookings', BookingViewSet, basename='booking')
+router.register(r'bookings-list', BookingFastListViewSet, basename='booking-list')
 router.register(r'client/bookings', ClientBookingViewSet, basename='client-booking')
 router.register(r'booking-items', BookingItemViewSet, basename='booking-item')
 router.register(r'booking-documents', BookingDocumentViewSet, basename='booking-document')
 router.register(r'client/booking-documents', ClientBookingDocumentViewSet, basename='client-booking-document')
+router.register(
+    r"booking-actions",
+    BookingActionTrackerCRMViewSet,
+    basename="crm-booking-actions"
+)
 
 # Cart & Coupon routes
 router.register(r'carts', CartViewSet, basename='cart')
