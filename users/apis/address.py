@@ -15,7 +15,7 @@ class AddressViewSet(viewsets.ModelViewSet):
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["user__first_name","line1","user__mobile"]
-    # ordering_fields = ["user__email", "user__mobile", "first_name","last_name","date_of_birth", "created_at"]
+    ordering_fields = ["id","user__email", "user__mobile", "first_name","last_name","date_of_birth", "created_at"]
 
 
     def get_queryset(self):

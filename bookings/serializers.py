@@ -40,7 +40,8 @@ class BookingFastListSerializer(serializers.ModelSerializer):
 
         # Mask mobile: 800xxxx271
         if len(mobile) >= 6:
-            masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
+            masked = mobile
+            # masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
         else:
             masked = mobile
 
@@ -355,7 +356,8 @@ class BookingActionTrackerListSerializer(serializers.ModelSerializer):
             return "system"
         mobile = obj.user.mobile or ""
         if len(mobile) >= 6:
-            masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
+            masked = mobile
+            # masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
         else:
             masked = mobile
         name = (obj.user.first_name or "") + " " + (obj.user.last_name or "")

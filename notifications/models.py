@@ -2,6 +2,7 @@ from django.db import models
 from users.models import User
 from django.contrib.contenttypes.fields import GenericForeignKey
 from django.contrib.contenttypes.models import ContentType
+from django.conf import settings
 
 class Notification(models.Model):
     NOTIFICATION_TYPES = [
@@ -54,6 +55,13 @@ class SMSTemplate(models.Model):
 
 
 class Enquiry(models.Model):
+    user = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        null=True,
+        blank=True,
+        related_name="enquiry"
+    )
     name = models.CharField(max_length=100)
     mobile = models.CharField(max_length=15)
     enquiry = models.TextField()

@@ -22,6 +22,7 @@ crm_router.register(r"users", UserViewSet, basename="crm-user")
 crm_router.register(r"roles", RoleViewSet, basename="crm-role")
 crm_router.register(r"patients", PatientViewSet, basename="crm-patient")
 crm_router.register(r"addresses", AddressViewSet, basename="crm-address")
+crm_router.register(r"location", LocationViewSet, basename="crm-location")
 
 # -----------------------------
 # Client Router

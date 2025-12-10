@@ -2,7 +2,7 @@ import boto3
 import uuid
 import json
 from django.conf import settings
-from rest_framework import viewsets, status
+from rest_framework import viewsets, status,filters
 from rest_framework.response import Response
 from rest_framework.parsers import MultiPartParser, FormParser
 from rest_framework.permissions import AllowAny
@@ -15,6 +15,9 @@ class ContentManagerViewSet(viewsets.ModelViewSet):
     queryset = ContentManager.objects.all().order_by("-created_at")
     serializer_class = ContentManagerSerializer
     parser_classes = (MultiPartParser, FormParser)
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = ["title", "description"]
+    ordering_fields = ["created_at", "title", "description"]
 
     # ---------------------------------------
     #       GET  → Filter using tags
@@ -37,7 +40,7 @@ class ContentManagerViewSet(viewsets.ModelViewSet):
         if tag_type:
             qs = qs.filter(tags__type=tag_type)
 
-        return qs
+        return qs.order_by('tags__type')
 
     # ---------------------------------------
     #        CREATE  → Upload to S3

@@ -3,6 +3,8 @@ from users.models import Role,User
 from users.serializers import UserSerializer, RoleSerializer
 from drpathcare.pagination import StandardResultsSetPagination
 from rest_framework import filters 
+from rest_framework import status
+from rest_framework.response import Response
 
 # -----------------------------
 # Role CRUD
@@ -23,12 +25,54 @@ class UserViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["email", "mobile", "first_name","last_name"]
-    ordering_fields = ["email", "mobile", "first_name","last_name","date_of_birth", "created_at"]
+    search_fields = ["email", "mobile", "first_name", "last_name"]
+    ordering_fields = [
+        "email",
+        "mobile",
+        "first_name",
+        "last_name",
+        "date_of_birth",
+        "created_at",
+        "id",
+    ]
 
     def get_queryset(self):
         qs = super().get_queryset()
-        staff = self.request.query_params.get("staff")
-        if staff:
+        if self.request.query_params.get("staff"):
             qs = qs.filter(is_staff=True)
         return qs
+
+    # ------------------------------------------------------
+    # ⭐ FIX: allow email="" or null just like OTP creation
+    # ------------------------------------------------------
+    def create(self, request, *args, **kwargs):
+        data = request.data.copy()
+
+        # convert empty email "" → None
+        if not data.get("email"):
+            data["email"] = None
+
+        serializer = self.get_serializer(data=data)
+        serializer.is_valid(raise_exception=True)
+        self.perform_create(serializer)
+
+        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+    # ------------------------------------------------------
+    # ⭐ FIX: update also must allow empty email=""
+    # ------------------------------------------------------
+    def update(self, request, *args, **kwargs):
+        partial = kwargs.pop("partial", False)
+        instance = self.get_object()
+
+        data = request.data.copy()
+
+        # convert empty "" → None
+        if data.get("email") == "":
+            data["email"] = None
+
+        serializer = self.get_serializer(instance, data=data, partial=partial)
+        serializer.is_valid(raise_exception=True)
+        self.perform_update(serializer)
+
+        return Response(serializer.data)

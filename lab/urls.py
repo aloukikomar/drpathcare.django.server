@@ -4,11 +4,11 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     LabTestCRMViewSet, ProfileCRMViewSet, PackageCRMViewSet,
     LabTestClientViewSet, ProfileClientViewSet, PackageClientViewSet,LabCategoryViewSet,global_search,LabCategoryClientViewSet,
-    LabTestBulkUploadAPIView
+    LabTestBulkUploadAPIView,LabCategoryCRMViewSet
 )
 
 crm_router = DefaultRouter()
-crm_router.register(r'lab-category', LabCategoryViewSet, basename='crm-lab-category')
+crm_router.register(r'lab-category', LabCategoryCRMViewSet, basename='crm-lab-category')
 crm_router.register(r'lab-tests', LabTestCRMViewSet, basename='crm-labtest')
 crm_router.register(r'lab-profiles', ProfileCRMViewSet, basename='crm-profile')
 crm_router.register(r'lab-packages', PackageCRMViewSet, basename='crm-package')

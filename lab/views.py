@@ -23,8 +23,8 @@ class BaseLabViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["name", "category__name","is_featured"]
-    ordering_fields = ["name", "category__name", "price", "created_at"]
+    search_fields = ["name","is_featured"]
+    ordering_fields = ["id","name", "category__name", "price", "created_at"]
 
     def get_queryset(self):
         qs = super().get_queryset()
@@ -97,6 +97,9 @@ class PackageCRMViewSet(BaseLabViewSet, viewsets.ModelViewSet):
     queryset = Package.objects.all()
     serializer_class = PackageSerializer
 
+class LabCategoryCRMViewSet(BaseLabViewSet, viewsets.ModelViewSet):
+    queryset = LabCategory.objects.all()
+    serializer_class = LabCategorySerializer
 
 # Client = Read only
 
