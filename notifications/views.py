@@ -55,6 +55,27 @@ class EnquiryViewSet(viewsets.ModelViewSet):
         return super().get_queryset()
 
     # ----------------------------------------------
+    # ⭐ NEW: Auto-link enquiry → existing user
+    # ----------------------------------------------
+    def create(self, request, *args, **kwargs):
+        mobile = request.data.get("mobile")
+
+        # find user by mobile
+        user = None
+        if mobile:
+            user = User.objects.filter(mobile=mobile).first()
+
+        # pass user into serializer context
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        enquiry = serializer.save(user=user)
+
+        return Response(
+            EnquirySerializer(enquiry).data,
+            status=status.HTTP_201_CREATED
+        )
+
+    # ----------------------------------------------
     # ⭐ NEW: Convert Enquiry → Customer (User)
     #    (Fully aligned with OTP method)
     # ----------------------------------------------
