@@ -64,12 +64,12 @@ class Booking(models.Model):
         related_name="bookings"
     )
 
-    current_agent = models.ForeignKey(
+    # NEW FIELD — supports multiple users per booking
+    assigned_users = models.ManyToManyField(
         settings.AUTH_USER_MODEL,
-        on_delete=models.SET_NULL,
-        null=True,
         blank=True,
-        related_name="assigned_bookings"
+        related_name="booking_roles",
+        help_text="All users associated with this booking (agent, manager, dietitian, etc.)"
     )
 
     address = models.ForeignKey(

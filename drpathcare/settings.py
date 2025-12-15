@@ -97,7 +97,26 @@ ALLOWED_HOSTS = ['*']
 #     "http://localhost:3001",  # React CRM
 # ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# ----------------------------
+# CSRF & CORS (PRODUCTION FIX)
+# ----------------------------
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://be.drpathcare.com",
+]
+
+CORS_ALLOWED_ORIGINS = [
+    "https://be.drpathcare.com",
+]
+
+# If frontend uses cookies (recommended safe defaults)
+CSRF_COOKIE_SECURE = True
+SESSION_COOKIE_SECURE = True
+
+CSRF_COOKIE_SAMESITE = "None"
+SESSION_COOKIE_SAMESITE = "None"
+
+# CORS_ALLOW_ALL_ORIGINS = True
 
 # Application definition
 

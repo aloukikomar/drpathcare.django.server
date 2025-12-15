@@ -6,6 +6,7 @@ from django.conf import settings
 from django.contrib.postgres.fields import JSONField 
 
 from bookings.models import Booking
+from users.models import User
 
 class BookingPayment(models.Model):
     PAYMENT_METHODS = [
@@ -48,3 +49,29 @@ class BookingPayment(models.Model):
 
     def __str__(self):
         return f"Payment {self.id} - {self.status} - ₹{self.amount} for Booking {self.booking_id}"
+
+
+class AgentIncentive(models.Model):
+    agent = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name="incentives"
+    )
+    booking = models.ForeignKey(
+        Booking,
+        on_delete=models.CASCADE,
+        related_name="incentives"
+    )
+
+    amount = models.DecimalField(max_digits=10, decimal_places=2)
+    remark = models.CharField(max_length=255, blank=True, null=True)
+
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("agent", "booking")  # optional restriction
+        ordering = ["-created_at","agent__first_name"]
+
+    def __str__(self):
+        return f"{self.user} → {self.booking} → {self.amount}"

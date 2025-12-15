@@ -4,8 +4,8 @@ from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 from django.db import transaction
 
-from .models import BookingPayment
-from .serializers import BookingPaymentSerializer
+from .models import BookingPayment,AgentIncentive
+from .serializers import BookingPaymentSerializer,AgentIncentiveSerializer
 from drpathcare.pagination import StandardResultsSetPagination
 from bookings.models import Booking
 from rest_framework.decorators import action
@@ -150,3 +150,67 @@ class PaymentConfirmationView(View):
             "redirect_url": "https://drpathcare.com/",
         }
         return render(request, self.template_name, context)
+
+
+class AgentIncentiveViewSet(viewsets.ModelViewSet):
+    queryset = (
+        AgentIncentive.objects.all()
+        .select_related("user", "booking")
+        .order_by("-created_at")
+    )
+    serializer_class = AgentIncentiveSerializer
+
+    # ⭐ Filters enabled
+    filter_backends = [
+        filters.SearchFilter,
+        filters.OrderingFilter,
+    ]
+
+    # ⭐ Search by fields
+    search_fields = [
+        "user__first_name",
+        "user__last_name",
+        "user__mobile",
+        "booking__booking_ref",
+        "remark",
+    ]
+
+    # ⭐ Exact filtering by user/booking
+    filterset_fields = ["user", "booking"]
+
+    # ⭐ Allow ordering
+    ordering_fields = [
+        "amount",
+        "created_at",
+        "user",
+        "booking",
+    ]
+    ordering = ["-created_at"]  # default
+
+    # -----------------------------
+    # Decide serializer
+    # -----------------------------
+    def get_serializer_class(self):
+        if (
+            self.request.method == "POST"
+            and isinstance(self.request.data, dict)
+            and "incentives" in self.request.data
+        ):
+            return AgentIncentiveBatchCreateSerializer
+
+        return AgentIncentiveSerializer
+
+    # -----------------------------
+    # Batch create handler
+    # -----------------------------
+    def create(self, request, *args, **kwargs):
+        if "incentives" in request.data:
+            serializer = self.get_serializer(data=request.data)
+            serializer.is_valid(raise_exception=True)
+            objs = serializer.save()
+            return Response(
+                AgentIncentiveSerializer(objs, many=True).data, status=201
+            )
+
+        # normal create
+        return super().create(request, *args, **kwargs)

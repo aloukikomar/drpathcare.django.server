@@ -3,6 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 
 from .views import (
+    AgentIncentiveViewSet,
     BookingPaymentViewSet,
     ClientBookingPaymentViewSet,
     PaymentConfirmationView,
@@ -11,6 +12,8 @@ from .views import (
 # Admin / staff / internal router
 router = DefaultRouter()
 router.register("payments", BookingPaymentViewSet, basename="payment")
+router.register("incentives", AgentIncentiveViewSet, basename="incentives")
+
 
 # Client-only router
 client_router = DefaultRouter()
