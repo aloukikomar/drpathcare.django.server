@@ -6,7 +6,7 @@ from .models import (
 )
 from payments.models import BookingPayment
 from users.serializers import (
-    PatientSerializer, AddressSerializer, UserSerializer
+    PatientSerializer, AddressSerializer, UserSerializer,UserMiniSerializer
 )
 from lab.serializers import LabTestSerializer, ProfileSerializer, PackageSerializer
 
@@ -16,6 +16,7 @@ class BookingFastListSerializer(serializers.ModelSerializer):
     user_str = serializers.SerializerMethodField()
     payment_count = serializers.IntegerField(read_only=True)
     document_count = serializers.IntegerField(read_only=True)
+    assigned_users = UserMiniSerializer(many=True, read_only=True)
 
     class Meta:
         model = Booking
@@ -26,11 +27,13 @@ class BookingFastListSerializer(serializers.ModelSerializer):
             "status",
             "payment_status",
             "final_amount",
+            "initial_amount",
             "created_at",
             "scheduled_date",
             "scheduled_time_slot",
             "payment_count",
             "document_count",
+            "assigned_users"
         ]
 
     def get_user_str(self, obj):
@@ -189,9 +192,9 @@ class BookingSerializer(serializers.ModelSerializer):
     class Meta:
         model = Booking
         fields = [
-            "id","ref_id", "user", "user_email", "current_agent", "address", "address_detail",
+            "id","ref_id", "user", "user_email", "assigned_users", "address", "address_detail",
             "coupon", "coupon_code","coupon_detail", "discount_amount", "coupon_discount", "admin_discount",
-            "base_total", "offer_total", "final_amount", "total_savings",
+            "base_total", "offer_total", "final_amount", "total_savings","initial_amount",
             "status","customer_status", "payment_status", "payment_method",
             "scheduled_date", "scheduled_time_slot", "remarks",
             "items", "create_items", "actions",

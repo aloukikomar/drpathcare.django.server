@@ -15,7 +15,7 @@ User = get_user_model()
 # -----------------------------
 # Send OTP
 # -----------------------------
-CRM_ROLES = ["Admin", "Staff", "Manager"]  # update as per your role model
+CRM_ROLES = ["Admin", "Staff", "Manager","Agent"]  # update as per your role model
 class SendOTPView(APIView):
     permission_classes = []
 
@@ -90,7 +90,7 @@ class VerifyOTPView(APIView):
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
         # ✅ Check role
-        if not user.role or user.role.name not in CRM_ROLES:
+        if not user.role :
             return Response(
                 {"error": "Access denied — not a CRM user"},
                 status=status.HTTP_403_FORBIDDEN,
@@ -117,7 +117,12 @@ class VerifyOTPView(APIView):
                     "id": user.id,
                     "email": user.email,
                     "mobile": user.mobile,
-                    "role": user.role.name,
+                    "role": {
+                                "id": user.role.id,
+                                "name": user.role.name,
+                                "view_all": user.role.view_all,
+                                "permissions": user.role.permissions or [],
+                            }
                 },
             },
             status=status.HTTP_200_OK,

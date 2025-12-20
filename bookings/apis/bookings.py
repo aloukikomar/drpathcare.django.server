@@ -12,6 +12,7 @@ from bookings.utils.calculations import get_booking_calculations
 from payments.utils import create_payment_link
 from payments.models import BookingPayment
 from bookings.utils.s3_utils import upload_to_s3 
+from users.models import User
 
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all().select_related("user", "address", "coupon").prefetch_related("items")
@@ -27,7 +28,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         status_param = self.request.query_params.get("status")
         user_param = self.request.query_params.get("user")
 
-        if not self.request.user.is_staff:
+        if not self.request.user.role:
             qs = qs.filter(user=self.request.user)
         else:
             if user_param:
@@ -52,6 +53,14 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         # ✅ 2. Create booking
         booking = serializer.save()
+
+        # 2️⃣ Assign users AFTER creation
+        if self.request.user.role is None:
+            system_user = User.objects.get(id=40)
+            booking.assigned_users.add(system_user)
+        else:
+            booking.assigned_users.add(self.request.user)
+
 
         # ✅ 3. Create booking items from validated result
         for item in result["items"]:
@@ -99,12 +108,12 @@ class BookingViewSet(viewsets.ModelViewSet):
 
         old_status = booking.status
         old_payment_status = booking.payment_status
-        old_agent = booking.current_agent_id
+        old_agent = booking.assigned_users
 
         payment_method = data.get("payment_method")
         payment_status = data.get("payment_status")
         new_status = data.get("status")
-        new_agent_id = data.get("current_agent")
+        new_agent_id = data.get("assigned_users")
 
         # === 1️⃣ Update Status ===
         if action_type == "update_status":
@@ -113,12 +122,18 @@ class BookingViewSet(viewsets.ModelViewSet):
             booking.status = new_status
             booking.save(update_fields=["status"])
 
-        # === 2️⃣ Update Agent ===
         elif action_type == "update_agent":
             if not new_agent_id:
-                raise ValidationError({"current_agent": "Agent ID is required."})
-            booking.current_agent_id = new_agent_id
-            booking.save(update_fields=["current_agent"])
+                raise ValidationError({"assigned_users": "Agent ID is required."})
+
+            try:
+                agents = User.objects.filter(id__in=new_agent_id)
+            except User.DoesNotExist:
+                raise ValidationError({"assigned_users": "Invalid agent ID"})
+
+            # Replace existing assigned users with this agent
+            for user in agents:
+                booking.assigned_users.add(user.id)
 
         # === 3️⃣ Payment Update ===
         elif action_type == "update_payment":
@@ -283,7 +298,7 @@ class BookingViewSet(viewsets.ModelViewSet):
             action = "status_change"
         elif booking.payment_status != old_payment_status:
             action = "payment_update"
-        elif booking.current_agent_id != old_agent:
+        elif booking.assigned_users != old_agent:
             action = "agent_change"
 
         BookingActionTracker.objects.create(
@@ -308,7 +323,7 @@ class BookingItemViewSet(viewsets.ModelViewSet):
         booking_id = self.request.query_params.get("booking")
         patient_id = self.request.query_params.get("patient")
 
-        if not self.request.user.is_staff:
+        if not self.request.user.role:
             qs = qs.filter(booking__user=self.request.user)
         else:
             if booking_id:

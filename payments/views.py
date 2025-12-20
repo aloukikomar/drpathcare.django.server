@@ -5,7 +5,7 @@ from rest_framework.response import Response
 from django.db import transaction
 
 from .models import BookingPayment,AgentIncentive
-from .serializers import BookingPaymentSerializer,AgentIncentiveSerializer
+from .serializers import BookingPaymentSerializer,AgentIncentiveSerializer,AgentIncentiveBatchCreateSerializer
 from drpathcare.pagination import StandardResultsSetPagination
 from bookings.models import Booking
 from rest_framework.decorators import action
@@ -17,6 +17,9 @@ from django.http import HttpResponse
 from django.utils.html import escape
 from django.views import View
 import time
+from django.db.models import Sum
+from django.utils.timezone import make_aware
+from datetime import datetime
 
 class ClientBookingPaymentViewSet(viewsets.ReadOnlyModelViewSet):
     serializer_class = BookingPaymentSerializer
@@ -151,66 +154,143 @@ class PaymentConfirmationView(View):
         }
         return render(request, self.template_name, context)
 
-
 class AgentIncentiveViewSet(viewsets.ModelViewSet):
-    queryset = (
-        AgentIncentive.objects.all()
-        .select_related("user", "booking")
-        .order_by("-created_at")
-    )
+    # queryset = (
+    #     AgentIncentive.objects
+    #     .select_related("agent", "booking")
+    #     .order_by("-created_at")
+    # )
     serializer_class = AgentIncentiveSerializer
+    permission_classes = [IsAuthenticated]
 
-    # ⭐ Filters enabled
-    filter_backends = [
-        filters.SearchFilter,
-        filters.OrderingFilter,
-    ]
+    # ----------------------------------
+    # Search / filter / ordering
+    # ----------------------------------
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
 
-    # ⭐ Search by fields
     search_fields = [
-        "user__first_name",
-        "user__last_name",
-        "user__mobile",
-        "booking__booking_ref",
+        "agent__first_name",
+        "agent__last_name",
+        "agent__mobile",
+        "booking__ref_id",
         "remark",
     ]
 
-    # ⭐ Exact filtering by user/booking
-    filterset_fields = ["user", "booking"]
+    filterset_fields = ["agent", "booking"]
 
-    # ⭐ Allow ordering
-    ordering_fields = [
-        "amount",
-        "created_at",
-        "user",
-        "booking",
-    ]
-    ordering = ["-created_at"]  # default
+    ordering_fields = ["amount", "created_at"]
+    ordering = ["-created_at"]
 
-    # -----------------------------
-    # Decide serializer
-    # -----------------------------
+    # ----------------------------------
+    # QUERYSET with ASSIGNED USERS CHECK
+    # ----------------------------------
+    def get_queryset(self):
+        user = self.request.user
+
+        # CRM-only access
+        if not user.role:
+            return AgentIncentive.objects.none()
+
+        qs = (
+            AgentIncentive.objects
+            .select_related("agent", "booking")
+            .order_by("-created_at")
+        )
+
+        assigned_ids = getattr(user, "get_assigned_users", None)
+
+        # ----------------------------------
+        # Assigned users filter (ANY match)
+        # booking.assigned_users ∩ user.get_assigned_users
+        # ----------------------------------
+        if assigned_ids:
+            qs = qs.filter(
+                booking__assigned_users__in=assigned_ids
+            ).distinct()
+
+        # ----------------------------------
+        # DATE RANGE FILTER
+        # ----------------------------------
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+
+        if date_from:
+            try:
+                start = make_aware(datetime.strptime(date_from, "%Y-%m-%d"))
+                qs = qs.filter(created_at__gte=start)
+            except ValueError:
+                pass  # silently ignore bad date
+
+        if date_to:
+            try:
+                # include full day till 23:59:59
+                end = make_aware(
+                    datetime.strptime(date_to, "%Y-%m-%d")
+                    .replace(hour=23, minute=59, second=59)
+                )
+                qs = qs.filter(created_at__lte=end)
+            except ValueError:
+                pass
+        
+
+        return qs
+
+
+    # ----------------------------------
+    # Serializer switch (bulk vs single)
+    # ----------------------------------
     def get_serializer_class(self):
-        if (
-            self.request.method == "POST"
-            and isinstance(self.request.data, dict)
-            and "incentives" in self.request.data
-        ):
+        if self.action == "create" and "items" in self.request.data:
             return AgentIncentiveBatchCreateSerializer
-
         return AgentIncentiveSerializer
 
-    # -----------------------------
-    # Batch create handler
-    # -----------------------------
+    # ----------------------------------
+    # BULK CREATE — first submission only
+    # ----------------------------------
+    @transaction.atomic
     def create(self, request, *args, **kwargs):
-        if "incentives" in request.data:
-            serializer = self.get_serializer(data=request.data)
-            serializer.is_valid(raise_exception=True)
-            objs = serializer.save()
+        # 👉 Single create (unlikely but allowed)
+        if "items" not in request.data:
+            return super().create(request, *args, **kwargs)
+
+        serializer = self.get_serializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        booking = serializer.validated_data["booking_obj"]
+
+        # ❌ Prevent second bulk creation
+        if AgentIncentive.objects.filter(booking=booking).exists():
             return Response(
-                AgentIncentiveSerializer(objs, many=True).data, status=201
+                {"detail": "Incentives already exist for this booking."},
+                status=status.HTTP_400_BAD_REQUEST,
             )
 
-        # normal create
-        return super().create(request, *args, **kwargs)
+        objs = serializer.save()
+
+        return Response(
+            AgentIncentiveSerializer(objs, many=True).data,
+            status=status.HTTP_201_CREATED,
+        )
+
+    # ----------------------------------
+    # SAFE UPDATE (FormDrawer)
+    # ----------------------------------
+    @transaction.atomic
+    def partial_update(self, request, *args, **kwargs):
+        instance = self.get_object()
+        new_amount = float(request.data.get("amount", instance.amount))
+
+        total_other = (
+            AgentIncentive.objects
+            .filter(booking=instance.booking)
+            .exclude(id=instance.id)
+            .aggregate(total=Sum("amount"))["total"] or 0
+        )
+
+        if total_other + new_amount > instance.booking.final_amount:
+            return Response(
+                {"detail": "Total incentive exceeds booking final amount."},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        return super().partial_update(request, *args, **kwargs)

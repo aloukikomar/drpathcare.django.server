@@ -11,6 +11,8 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from rest_framework import status
 from users.models import User
+from datetime import datetime
+from django.utils.timezone import make_aware
 
 
 class NotificationViewSet(viewsets.ModelViewSet):
@@ -39,6 +41,29 @@ class NotificationViewSet(viewsets.ModelViewSet):
         if status:
             qs = qs.filter(status=status)
 
+        # ----------------------------------
+        # DATE RANGE FILTER
+        # ----------------------------------
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+
+        if date_from:
+            try:
+                start = make_aware(datetime.strptime(date_from, "%Y-%m-%d"))
+                qs = qs.filter(created_at__gte=start)
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                end = make_aware(
+                    datetime.strptime(date_to, "%Y-%m-%d")
+                    .replace(hour=23, minute=59, second=59)
+                )
+                qs = qs.filter(created_at__lte=end)
+            except ValueError:
+                pass
+
         return qs
 
 
@@ -49,10 +74,39 @@ class EnquiryViewSet(viewsets.ModelViewSet):
     permission_classes = [AllowAny]
 
     def get_queryset(self):
-        # ✔ Only staff can see enquiries
-        if not self.request.user.is_staff:
+        user = self.request.user
+
+        # ✔ CRM-only access (customers have no role)
+        if not user.role:
             return Enquiry.objects.none()
-        return super().get_queryset()
+
+        qs = Enquiry.objects.all().order_by("-created_at")
+
+        # ----------------------------------
+        # DATE RANGE FILTER
+        # ----------------------------------
+        date_from = self.request.query_params.get("date_from")
+        date_to = self.request.query_params.get("date_to")
+
+        if date_from:
+            try:
+                start = make_aware(datetime.strptime(date_from, "%Y-%m-%d"))
+                qs = qs.filter(created_at__gte=start)
+            except ValueError:
+                pass
+
+        if date_to:
+            try:
+                end = make_aware(
+                    datetime.strptime(date_to, "%Y-%m-%d")
+                    .replace(hour=23, minute=59, second=59)
+                )
+                qs = qs.filter(created_at__lte=end)
+            except ValueError:
+                pass
+
+        return qs
+
 
     # ----------------------------------------------
     # ⭐ NEW: Auto-link enquiry → existing user

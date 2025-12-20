@@ -12,7 +12,7 @@ from .views import (
 # Admin / staff / internal router
 router = DefaultRouter()
 router.register("payments", BookingPaymentViewSet, basename="payment")
-router.register("incentives", AgentIncentiveViewSet, basename="incentives")
+router.register("crm/incentives", AgentIncentiveViewSet, basename="incentives")
 
 
 # Client-only router

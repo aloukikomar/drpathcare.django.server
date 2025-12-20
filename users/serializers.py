@@ -43,6 +43,19 @@ class RoleSerializer(serializers.ModelSerializer):
         model = Role
         fields = "__all__"
 
+
+class UserMiniSerializer(serializers.ModelSerializer):
+    name = serializers.SerializerMethodField()
+
+    class Meta:
+        model = User
+        fields = ("id", "name","mobile")
+
+    def get_name(self, obj):
+        if obj.first_name or obj.last_name:
+            return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
+        return obj.mobile
+
 # -----------------------------
 # User Serializer
 # -----------------------------

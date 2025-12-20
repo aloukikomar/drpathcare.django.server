@@ -12,7 +12,8 @@ from bookings.apis import (
     CouponRedemptionViewSet,
     ClientBookingViewSet,
     ClientBookingDocumentViewSet,
-    BookingActionTrackerCRMViewSet
+    BookingActionTrackerCRMViewSet,
+    DashboardAPIView,
 )
 
 # -----------------------------------------------------
@@ -44,6 +45,11 @@ router.register(r'coupon-redemptions', CouponRedemptionViewSet, basename='coupon
 # -----------------------------------------------------
 urlpatterns = [
     path('', include(router.urls)),
+    path(
+        'crm/dashboard/',
+        DashboardAPIView.as_view(),
+        name='crm-dashboard'
+    ),
 
     # Public booking details (no auth required)
     path(

@@ -21,7 +21,7 @@ class CouponRedemptionViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         # normal users should see only their redemptions
-        if not self.request.user.is_staff:
+        if not self.request.user.role:
             qs = qs.filter(user=self.request.user)
         else:
             user_param = self.request.query_params.get("user")

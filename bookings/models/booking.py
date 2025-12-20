@@ -96,6 +96,7 @@ class Booking(models.Model):
     total_savings = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     coupon_discount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
     admin_discount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
+    initial_amount = models.DecimalField(max_digits=12, decimal_places=2, default=Decimal("0.00"))
 
     status = models.CharField(max_length=30, choices=STATUS_CHOICES, default="open")
     customer_status = models.CharField(max_length=30, choices=CUSTOMER_STATUS_CHOICES, default="registered")

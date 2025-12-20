@@ -31,7 +31,7 @@ class BookingActionTrackerCRMViewSet(viewsets.ReadOnlyModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
 
-        if not self.request.user.is_staff:
+        if not self.request.user.role:
             return BookingActionTracker.objects.none()
 
         booking_id = self.request.query_params.get("booking")

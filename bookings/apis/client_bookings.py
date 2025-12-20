@@ -35,7 +35,7 @@ class ClientBookingViewSet(viewsets.ModelViewSet):
 
         # CRM mode → full access
         is_crm = self.request.path.startswith("/api/crm/")
-        if is_crm and self.request.user.is_staff:
+        if is_crm and self.request.user.role:
             user_param = self.request.query_params.get("user")
             if user_param:
                 qs = qs.filter(user_id=user_param)

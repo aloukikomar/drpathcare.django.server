@@ -9,50 +9,133 @@ from .models import User, Role,Address,Patient,Location
 # -----------------------------
 @admin.register(Role)
 class RoleAdmin(admin.ModelAdmin):
-    list_display = ("name", "parent")
+    list_display = ("name", "view_all")
     search_fields = ("name",)
-    list_filter = ("parent",)
+    list_filter = ("view_all",)
 
 
-# -----------------------------
-# User Admin
-# -----------------------------
 @admin.register(User)
 class UserAdmin(BaseUserAdmin):
-    # Columns shown in the user list
+    model = User
+
+    # --------------------------------------------------
+    # LIST PAGE
+    # --------------------------------------------------
     list_display = (
+        "id",
         "email",
         "mobile",
         "first_name",
         "last_name",
         "role",
+        "parent",
+        "user_code",
         "is_active",
-        "is_staff",
         "created_at",
     )
-    list_filter = ("is_active", "is_staff", "role", "gender")
-    search_fields = ("email", "mobile", "first_name", "last_name")
-    ordering = ("-created_at",)
 
-    # Fieldsets for edit page
-    fieldsets = (
-        (None, {"fields": ("email", "mobile", "password")}),
-        ("Personal info", {"fields": ("first_name", "last_name", "gender", "date_of_birth", "role")}),
-        ("Permissions", {"fields": ("is_active", "is_staff", "is_superuser", "groups", "user_permissions")}),
-        # ("Important dates", {"fields": ("last_login", "created_at", "updated_at")}),
+    list_filter = (
+        "is_active",
+        "role",
+        "gender",
     )
 
-    # Fieldsets for add user page
+    search_fields = (
+        "email",
+        "mobile",
+        "first_name",
+        "last_name",
+        "user_code",
+    )
+
+    ordering = ("-created_at",)
+
+    autocomplete_fields = ("parent",)
+
+    # --------------------------------------------------
+    # EDIT PAGE
+    # --------------------------------------------------
+    fieldsets = (
+        (
+            None,
+            {
+                "fields": (
+                    "email",
+                    "mobile",
+                    "password",
+                )
+            },
+        ),
+        (
+            "Personal Information",
+            {
+                "fields": (
+                    "first_name",
+                    "last_name",
+                    "gender",
+                    "date_of_birth",
+                    "age",
+                )
+            },
+        ),
+        (
+            "Role & Hierarchy",
+            {
+                "fields": (
+                    "role",
+                    "parent",
+                    "user_code",
+                )
+            },
+        ),
+        (
+            "Permissions",
+            {
+                "fields": (
+                    "is_active",
+                    "is_superuser",
+                    "groups",
+                    "user_permissions",
+                )
+            },
+        ),
+    )
+
+    # --------------------------------------------------
+    # ADD USER PAGE
+    # --------------------------------------------------
     add_fieldsets = (
         (
             None,
             {
                 "classes": ("wide",),
-                "fields": ("email", "mobile", "password1", "password2", "role", "is_staff", "is_active"),
+                "fields": (
+                    "email",
+                    "mobile",
+                    "password1",
+                    "password2",
+                    "role",
+                    "parent",
+                    "user_code",
+                    "is_active",
+                ),
             },
         ),
     )
 
+    filter_horizontal = ("groups", "user_permissions")
+
+    readonly_fields = ("created_at", "updated_at")
+
+    # --------------------------------------------------
+    # ADMIN UX IMPROVEMENTS
+    # --------------------------------------------------
+    def get_queryset(self, request):
+        """
+        Optimize admin queries
+        """
+        qs = super().get_queryset(request)
+        return qs.select_related("role", "parent")
 
 class PatientInline(admin.TabularInline):
     model = Patient

@@ -39,7 +39,7 @@ class UserViewSet(viewsets.ModelViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         if self.request.query_params.get("staff"):
-            qs = qs.filter(is_staff=True)
+            qs = qs.filter(role__isnull=False)
         return qs
 
     # ------------------------------------------------------

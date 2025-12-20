@@ -106,13 +106,16 @@ CSRF_TRUSTED_ORIGINS = [
     "https://test.drpathcare.com",
     "https://crm.drpathcare.com",
     "https://drpathcare.com"
+    "https://www.drpathcare.com"
 ]
 
 CORS_ALLOWED_ORIGINS = [
     "https://be.drpathcare.com",
     "https://test.drpathcare.com",
     "https://crm.drpathcare.com",
-    "https://drpathcare.com"
+    "https://drpathcare.com",
+    "http://localhost:5173",
+    "https://www.drpathcare.com"
 ]
 
 # If frontend uses cookies (recommended safe defaults)

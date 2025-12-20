@@ -5,3 +5,4 @@ from .booking_document import *
 from .client_bookings import *
 from .fast_booking import *
 from .booking_tracker import *
+from .dashboard import *
