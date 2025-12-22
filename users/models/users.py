@@ -105,6 +105,11 @@ class User(AbstractBaseUser, PermissionsMixin):
     updated_at = models.DateTimeField(auto_now=True)
 
     objects = UserManager()
+    custome_permissions = models.JSONField(
+        default=list,
+        blank=True,
+        help_text="List of permission keys"
+    )
 
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["mobile"]

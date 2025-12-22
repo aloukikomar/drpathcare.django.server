@@ -23,7 +23,7 @@ class BaseLabViewSet(viewsets.GenericViewSet):
     permission_classes = [IsAuthenticated]
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
-    search_fields = ["name","is_featured"]
+    search_fields = ["name"]
     ordering_fields = ["id","name", "category__name", "price", "created_at"]
 
     def get_queryset(self):
@@ -107,11 +107,13 @@ class LabCategoryClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.Ret
     queryset = LabCategory.objects.all().order_by("name")
     serializer_class = LabCategorySerializer
     permission_classes = [AllowAny]
+    
 
 class LabTestClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
     queryset = LabTest.objects.all()
     serializer_class = LabTestSerializer
     permission_classes = [AllowAny]
+    search_fields = ["name","is_featured"]
 
 
 class ProfileClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
@@ -124,6 +126,7 @@ class PackageClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.Retriev
     queryset = Package.objects.all()
     serializer_class = PackageSerializer
     permission_classes = [AllowAny]
+    search_fields = ["name","is_featured"]
 
 
 class LabCategoryViewSet(viewsets.ReadOnlyModelViewSet):

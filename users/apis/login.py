@@ -117,6 +117,7 @@ class VerifyOTPView(APIView):
                     "id": user.id,
                     "email": user.email,
                     "mobile": user.mobile,
+                    "custome_permissions": user.custome_permissions,
                     "role": {
                                 "id": user.role.id,
                                 "name": user.role.name,

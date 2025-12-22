@@ -32,6 +32,7 @@ class UserAdmin(BaseUserAdmin):
         "user_code",
         "is_active",
         "created_at",
+        
     )
 
     list_filter = (
@@ -85,6 +86,7 @@ class UserAdmin(BaseUserAdmin):
                     "role",
                     "parent",
                     "user_code",
+                    "custome_permissions"
                 )
             },
         ),
