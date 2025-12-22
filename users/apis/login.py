@@ -122,6 +122,8 @@ class VerifyOTPView(APIView):
                                 "name": user.role.name,
                                 "view_all": user.role.view_all,
                                 "permissions": user.role.permissions or [],
+                                "max_amount":user.role.max_amount,
+                                "max_percentage":user.role.max_percentage,
                             }
                 },
             },

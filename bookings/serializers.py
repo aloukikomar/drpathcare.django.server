@@ -366,3 +366,26 @@ class BookingActionTrackerListSerializer(serializers.ModelSerializer):
         name = (obj.user.first_name or "") + " " + (obj.user.last_name or "")
         name = name.strip() or masked
         return f"{name} ({masked})"
+
+
+class BookingBulkUpdateSerializer(serializers.Serializer):
+    actions = serializers.ListField(
+        child=serializers.ChoiceField(
+            choices=[
+                "update_items",
+                "update_discounts",
+                "update_schedule",
+            ]
+        ),
+        allow_empty=False,
+    )
+
+    remarks = serializers.CharField()
+
+    # Optional (used based on action)
+    items = serializers.ListField(required=False)
+    coupon = serializers.IntegerField(required=False, allow_null=True)
+    admin_discount = serializers.FloatField(required=False)
+
+    scheduled_date = serializers.DateField(required=False)
+    scheduled_time_slot = serializers.CharField(required=False)

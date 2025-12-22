@@ -103,18 +103,22 @@ def get_booking_calculations(client_data, items, coupon_id=None):
     def close_enough(server_val, client_val, tolerance=Decimal("1.00")):
         return abs(server_val - client_val) <= tolerance
 
-    posted_base = Decimal(str(client_data.get("base_total") or "0"))
-    posted_offer = Decimal(str(client_data.get("offer_total") or "0"))
-    posted_final = Decimal(str(client_data.get("final_amount") or "0"))
+    # Only validate against client totals if they were explicitly provided
+    if "base_total" in client_data:
+        posted_base = Decimal(str(client_data.get("base_total")))
+        if not close_enough(base_total, posted_base):
+            return False, f"Base total mismatch: server {base_total}, client {posted_base}"
 
-    if not close_enough(base_total, posted_base):
-        return False, f"Base total mismatch: server {base_total}, client {posted_base}"
+    if "offer_total" in client_data:
+        posted_offer = Decimal(str(client_data.get("offer_total")))
+        if not close_enough(offer_total, posted_offer):
+            return False, f"Offer total mismatch: server {offer_total}, client {posted_offer}"
 
-    if not close_enough(offer_total, posted_offer):
-        return False, f"Offer total mismatch: server {offer_total}, client {posted_offer}"
+    if "final_amount" in client_data:
+        posted_final = Decimal(str(client_data.get("final_amount")))
+        if not close_enough(final_amount, posted_final):
+            return False, f"Final amount mismatch: server {final_amount}, client {posted_final}"
 
-    if not close_enough(final_amount, posted_final):
-        return False, f"Final amount mismatch: server {final_amount}, client {posted_final}"
 
     # ✅ Step 6: Return validated calculation summary
     return True, {

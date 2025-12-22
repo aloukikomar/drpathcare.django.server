@@ -6,3 +6,4 @@ from .client_bookings import *
 from .fast_booking import *
 from .booking_tracker import *
 from .dashboard import *
+from .booking_bulk_update import *

@@ -51,6 +51,8 @@ class Role(models.Model):
         default=False,
         help_text="If true, users with this role can view all records"
     )
+    max_amount = models.PositiveIntegerField(default=100)
+    max_percentage = models.PositiveIntegerField(default=10)
 
     def __str__(self):
         return self.name

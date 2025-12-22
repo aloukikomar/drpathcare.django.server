@@ -79,6 +79,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
             elif incentive == "false":
                 qs = qs.filter(incentives__isnull=False)
 
+        
         # ----------------------------------
         # ✅ DATE RANGE FILTER
         # Applies to created_at OR scheduled_date
@@ -91,7 +92,6 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
                 Q(created_at__date__range=(df, dt)) |
                 Q(scheduled_date__range=(df, dt))
             )
-
         # ----------------------------------
         # ⚡ SPEED OPTIMIZATION
         # ----------------------------------

@@ -14,6 +14,7 @@ from bookings.apis import (
     ClientBookingDocumentViewSet,
     BookingActionTrackerCRMViewSet,
     DashboardAPIView,
+    BookingBulkUpdateViewSet,
 )
 
 # -----------------------------------------------------
@@ -32,6 +33,11 @@ router.register(
     r"booking-actions",
     BookingActionTrackerCRMViewSet,
     basename="crm-booking-actions"
+)
+router.register(
+    r"bookings-bulk-update",
+    BookingBulkUpdateViewSet,
+    basename="booking-bulk-update",
 )
 
 # Cart & Coupon routes

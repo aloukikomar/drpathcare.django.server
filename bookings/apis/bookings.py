@@ -81,6 +81,7 @@ class BookingViewSet(viewsets.ModelViewSet):
         booking.admin_discount = result["admin_discount"]
         booking.discount_amount = result["total_discount"]
         booking.final_amount = result["final_amount"]
+        booking.initial_amount = result["final_amount"]
         booking.total_savings = result["base_total"] - result["final_amount"]
         booking.save()
 
