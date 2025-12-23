@@ -34,7 +34,7 @@ class LabTest(models.Model):
     
     category = models.ForeignKey(
         "LabCategory", on_delete=models.SET_NULL, null=True, blank=True,
-        limit_choices_to={"entity_type": "test"}, related_name="lab_tests"
+        limit_choices_to={"entity_type": "lab_test"}, related_name="lab_tests"
     )
     price = models.DecimalField(max_digits=10, decimal_places=2)
     offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)

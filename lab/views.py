@@ -30,7 +30,7 @@ class BaseLabViewSet(viewsets.GenericViewSet):
         qs = super().get_queryset()
         category = self.request.query_params.get("category")
         if category:
-            qs = qs.filter(category__name__icontains=category)
+            qs = qs.filter(category_id=category)
         return qs
 
 
