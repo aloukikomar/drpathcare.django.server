@@ -23,7 +23,7 @@ load_dotenv()
 #all env variables
 AWS_ACCESS_KEY_ID = os.getenv("AWS_ACCESS_KEY_ID")
 AWS_SECRET_ACCESS_KEY = os.getenv("AWS_SECRET_ACCESS_KEY")
-AWS_STORAGE_BUCKET_NAME = "drpathcare"
+AWS_STORAGE_BUCKET_NAME = "drpathcare-prod"
 AWS_S3_REGION_NAME = "ap-south-1"
 AWS_S3_SIGNATURE_VERSION = "s3v4"
 AWS_S3_ADDRESSING_STYLE = "path"
