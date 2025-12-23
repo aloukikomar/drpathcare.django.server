@@ -12,7 +12,7 @@ class LabCategoryAdmin(admin.ModelAdmin):
 @admin.register(LabTest)
 class LabTestAdmin(admin.ModelAdmin):
     list_display = ("id", "test_code", "name", "category", "price", "reported_on")
-    search_fields = ("name", "test_code", "investigation", "sample_type")
+    search_fields = ("name", "test_code", "sample_type")
     list_filter = ("category", "sample_type", "reported_on")
 
 @admin.register(Profile)

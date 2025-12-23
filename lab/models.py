@@ -40,7 +40,11 @@ class LabTest(models.Model):
     offer_price = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
     # sample_required = models.CharField(max_length=255, blank=True, null=True)
     # image = models.ForeignKey(ContentManager, on_delete=models.SET_NULL, null=True, blank=True, related_name="lab_tests")
-    
+    child_tests = models.JSONField(
+                                    default=list,
+                                    blank=True,
+                                    help_text="List of child tests"
+                                )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
