@@ -105,7 +105,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://be.drpathcare.com",
     "https://test.drpathcare.com",
     "https://crm.drpathcare.com",
-    "https://drpathcare.com"
+    "https://drpathcare.com",
     "https://www.drpathcare.com"
 ]
 

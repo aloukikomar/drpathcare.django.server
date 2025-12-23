@@ -24,7 +24,7 @@ class BaseLabViewSet(viewsets.GenericViewSet):
     pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
     search_fields = ["name"]
-    ordering_fields = ["id","name", "category__name", "price", "created_at"]
+    ordering_fields = ["id","name", "category__name", "price","offer_price", "created_at"]
 
     def get_queryset(self):
         qs = super().get_queryset()
