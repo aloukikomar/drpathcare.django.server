@@ -72,6 +72,11 @@ class EnquiryViewSet(viewsets.ModelViewSet):
     serializer_class = EnquirySerializer
     pagination_class = StandardResultsSetPagination
     permission_classes = [AllowAny]
+    filter_backends = [filters.SearchFilter, filters.OrderingFilter]
+    search_fields = [
+        "name","mobile"
+    ]
+    ordering_fields = ["id","name","created_at"]
 
     def get_queryset(self):
         user = self.request.user
