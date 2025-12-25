@@ -79,4 +79,4 @@ class PackageSerializer(serializers.ModelSerializer):
         model = Package
         fields = ["id", "name", "description", "category", "category_name",
                   "price", "image", "image_url", "tests",
-                   "test_ids","offer_price","package_total_test"]
+                   "test_ids","offer_price","package_total_test","is_featured"]
