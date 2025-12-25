@@ -29,6 +29,9 @@ class BaseLabViewSet(viewsets.GenericViewSet):
     def get_queryset(self):
         qs = super().get_queryset()
         category = self.request.query_params.get("category")
+        is_featured = self.request.query_params.get("is_featured")
+        if is_featured:
+            qs = qs.filter(is_featured=True)
         if category:
             qs = qs.filter(category_id=category)
         return qs
@@ -113,7 +116,7 @@ class LabTestClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.Retriev
     queryset = LabTest.objects.all()
     serializer_class = LabTestSerializer
     permission_classes = [AllowAny]
-    search_fields = ["name","is_featured"]
+    search_fields = ["name"]
 
 
 class ProfileClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.RetrieveModelMixin):
@@ -126,7 +129,7 @@ class PackageClientViewSet(BaseLabViewSet, mixins.ListModelMixin, mixins.Retriev
     queryset = Package.objects.all()
     serializer_class = PackageSerializer
     permission_classes = [AllowAny]
-    search_fields = ["name","is_featured"]
+    search_fields = ["name"]
 
 
 class LabCategoryViewSet(viewsets.ReadOnlyModelViewSet):

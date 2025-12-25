@@ -46,11 +46,29 @@ class ContentManagerViewSet(viewsets.ModelViewSet):
     #        CREATE  → Upload to S3
     # ---------------------------------------
     def perform_create(self, serializer):
+        file_url = self._upload_to_s3()
+        serializer.save(file_url=file_url)
+
+    # ---------------------------------------
+    # UPDATE → Upload to S3 (optional)
+    # ---------------------------------------
+    def perform_update(self, serializer):
+        file_obj = self.request.FILES.get("file")
+
+        if file_obj:
+            file_url = self._upload_to_s3()
+            serializer.save(file_url=file_url)
+        else:
+            serializer.save()
+
+    # ---------------------------------------
+    # Shared S3 upload helper
+    # ---------------------------------------
+    def _upload_to_s3(self):
         file_obj = self.request.FILES.get("file")
         if not file_obj:
             raise ValueError("No file uploaded")
 
-        # 1. Init S3 client
         s3 = boto3.client(
             "s3",
             aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -58,26 +76,24 @@ class ContentManagerViewSet(viewsets.ModelViewSet):
             region_name=settings.AWS_S3_REGION_NAME,
         )
 
-        # 2. Unique filename
         ext = file_obj.name.split(".")[-1]
         filename = f"content/{uuid.uuid4()}.{ext}"
 
-        # 3. Upload
         s3.upload_fileobj(
             file_obj,
             settings.AWS_STORAGE_BUCKET_NAME,
             filename,
-            ExtraArgs={"ContentType": file_obj.content_type},
+            ExtraArgs={
+                "ContentType": file_obj.content_type,
+                "ACL": "public-read",  # important for read access
+            },
         )
 
-        # 4. Public URL
-        file_url = (
+        return (
             f"https://{settings.AWS_STORAGE_BUCKET_NAME}.s3."
             f"{settings.AWS_S3_REGION_NAME}.amazonaws.com/{filename}"
         )
 
-        # 5. Save
-        serializer.save(file_url=file_url)
 
 
 
