@@ -62,8 +62,13 @@ class UserMiniSerializer(serializers.ModelSerializer):
 class UserSerializer(serializers.ModelSerializer):
     role_name = serializers.CharField(source="role.name", read_only=True)
 
-    def get_age(self):
-        return ""
+    # 👇 NEW FIELDS
+    parent = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        required=False,
+        allow_null=True
+    )
+    parent_name = serializers.SerializerMethodField()
 
     class Meta:
         model = User
@@ -76,8 +81,11 @@ class UserSerializer(serializers.ModelSerializer):
             "gender",
             "date_of_birth",
             "age",
+            "user_code",        # ✅ ADD
             "role",
             "role_name",
+            "parent",           # ✅ ADD (id only, writeable)
+            "parent_name",      # ✅ ADD (read-only display)
             "is_staff",
             "is_active",
             "created_at",
@@ -86,9 +94,18 @@ class UserSerializer(serializers.ModelSerializer):
         read_only_fields = (
             "id",
             "role_name",
+            "parent_name",
             "created_at",
             "updated_at",
         )
+
+    # -----------------------------
+    # Helpers
+    # -----------------------------
+    def get_parent_name(self, obj):
+        if not obj.parent:
+            return None
+        return f"{obj.parent.first_name} {obj.parent.last_name}".strip()
 
 
 class SendOTPSerializer(serializers.Serializer):
