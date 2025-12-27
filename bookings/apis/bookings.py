@@ -14,6 +14,34 @@ from payments.models import BookingPayment
 from bookings.utils.s3_utils import upload_to_s3 
 from users.models import User
 
+
+def build_verification_notes(booking):
+    lines = ["Following are booked items at the time of verification:\n"]
+
+    for item in booking.items.select_related(
+        "lab_test", "profile", "package", "patient"
+    ):
+        # resolve product name
+        if item.lab_test:
+            product_name = item.lab_test.name
+        elif item.profile:
+            product_name = item.profile.name
+        elif item.package:
+            product_name = item.package.name
+        else:
+            product_name = "Unknown Item"
+
+        patient_name = (
+            item.patient.first_name + " " + item.patient.last_name if item.patient else "Unknown Patient"
+        )
+
+        lines.append(f"- {product_name} — {patient_name}")
+
+    lines.append("\n")
+    lines.append(f"Final booking amount: ₹{booking.final_amount}")
+
+    return "\n".join(lines)
+
 class BookingViewSet(viewsets.ModelViewSet):
     queryset = Booking.objects.all().select_related("user", "address", "coupon").prefetch_related("items")
     serializer_class = BookingSerializer
@@ -121,6 +149,22 @@ class BookingViewSet(viewsets.ModelViewSet):
             if not new_status:
                 raise ValidationError({"status": "Status is required for this action."})
             booking.status = new_status
+            
+            # ✅ SPECIAL CASE: VERIFIED
+            if new_status == "verified" and booking.initial_amount:
+                booking.initial_amount = booking.final_amount
+
+                # 📝 Create verification snapshot
+                verification_notes = build_verification_notes(booking)
+
+                BookingActionTracker.objects.create(
+                    booking=booking,
+                    user=None,  # explicitly no user
+                    action="add_remark",
+                    notes=verification_notes,
+                )
+
+                booking.save(update_fields=["status", "initial_amount"])
             booking.save(update_fields=["status"])
 
         elif action_type == "update_agent":
