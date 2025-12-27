@@ -4,3 +4,6 @@
 *.py[cod]
 __pycache__/
 *$py.class
+
+test.py
+test.txt
