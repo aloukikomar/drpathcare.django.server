@@ -7,3 +7,4 @@ from .fast_booking import *
 from .booking_tracker import *
 from .dashboard import *
 from .booking_bulk_update import *
+from .call_connect import *

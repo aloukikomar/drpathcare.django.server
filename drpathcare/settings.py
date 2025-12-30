@@ -52,6 +52,13 @@ GETA_API_KEY = os.getenv('GETA_API_KEY')
 BASE_URL = os.getenv('BASE_URL')
 
 
+#exotel settingd
+EXOTEL_ACCOUNT_SID = os.getenv('EXOTEL_ACCOUNT_SID')
+EXOTEL_API_KEY = os.getenv('EXOTEL_API_KEY')
+EXOTEL_API_TOKEN = os.getenv('EXOTEL_API_TOKEN')
+EXOTEL_CALLER_ID = os.getenv('EXOTEL_CALLER_ID')
+
+
 class TrustAllEmailBackend(EmailBackend):
     def open(self):
         self.connection = smtplib.SMTP_SSL(

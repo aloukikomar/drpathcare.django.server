@@ -15,6 +15,7 @@ from bookings.apis import (
     BookingActionTrackerCRMViewSet,
     DashboardAPIView,
     BookingBulkUpdateViewSet,
+    CallConnectAPIView,
 )
 
 # -----------------------------------------------------
@@ -51,6 +52,7 @@ router.register(r'coupon-redemptions', CouponRedemptionViewSet, basename='coupon
 # -----------------------------------------------------
 urlpatterns = [
     path('', include(router.urls)),
+    path("calls/connect/", CallConnectAPIView.as_view()),
     path(
         'crm/dashboard/',
         DashboardAPIView.as_view(),

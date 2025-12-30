@@ -16,6 +16,12 @@ class BookingDocumentViewSet(viewsets.ModelViewSet):
         booking_id = self.request.query_params.get("booking")
         if booking_id:
             qs = qs.filter(booking_id=booking_id)
+            # ⛔ Hide invoice if payment not successful
+            qs = qs.exclude(
+                    booking__payment_status__in=["pending", "initiated", "failed", "refunded", "not_required"],
+                    doc_type="invoice"
+                )
+
         return qs
 
     def perform_create(self, serializer):
@@ -44,6 +50,12 @@ class ClientBookingDocumentViewSet(viewsets.ReadOnlyModelViewSet):
         qs = BookingDocument.objects.filter(
             booking__user=user
         ).select_related("booking").order_by("-created_at")
+
+        # ⛔ Hide invoice if payment not successful
+        qs = qs.exclude(
+                booking__payment_status__in=["pending", "initiated", "failed", "refunded", "not_required"],
+                doc_type="invoice"
+            )
 
         if booking_id:
             qs = qs.filter(booking_id=booking_id)

@@ -12,6 +12,7 @@ from bookings.utils.calculations import get_booking_calculations
 from payments.utils import create_payment_link
 from payments.models import BookingPayment
 from bookings.utils.s3_utils import upload_to_s3 
+from bookings.utils.invoice import generate_invoice_pdf
 from users.models import User
 
 
@@ -149,6 +150,12 @@ class BookingViewSet(viewsets.ModelViewSet):
             if not new_status:
                 raise ValidationError({"status": "Status is required for this action."})
             booking.status = new_status
+
+            if new_status == "sample_collected":
+                try:
+                    generate_invoice_pdf(booking.id)
+                except:
+                    pass
             
             # ✅ SPECIAL CASE: VERIFIED
             if new_status == "verified" and booking.initial_amount:
