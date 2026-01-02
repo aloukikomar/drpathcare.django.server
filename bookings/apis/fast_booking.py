@@ -107,6 +107,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
                 "created_at",
                 "scheduled_date",
                 "scheduled_time_slot",
+                "address__location",
                 "user__first_name",
                 "user__last_name",
                 "user__mobile",

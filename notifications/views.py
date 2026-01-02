@@ -86,6 +86,8 @@ class EnquiryViewSet(viewsets.ModelViewSet):
             return Enquiry.objects.none()
 
         qs = Enquiry.objects.all().order_by("-created_at")
+        if user.role.name != 'Admin':
+            qs = qs.filter(agent = user)
 
         # ----------------------------------
         # DATE RANGE FILTER
@@ -118,16 +120,21 @@ class EnquiryViewSet(viewsets.ModelViewSet):
     # ----------------------------------------------
     def create(self, request, *args, **kwargs):
         mobile = request.data.get("mobile")
-
+        agent_code = request.data.get("agent_code")
         # find user by mobile
         user = None
         if mobile:
             user = User.objects.filter(mobile=mobile).first()
 
+        if agent_code:
+            agent = User.objects.filter(user_code=agent_code,role__isnull=False).first()
+
         # pass user into serializer context
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         enquiry = serializer.save(user=user)
+        if agent_code:
+            enquiry = serializer.save(agent=agent)
 
         return Response(
             EnquirySerializer(enquiry).data,

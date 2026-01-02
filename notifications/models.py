@@ -65,6 +65,12 @@ class Enquiry(models.Model):
     name = models.CharField(max_length=100)
     mobile = models.CharField(max_length=15)
     enquiry = models.TextField()
+    agent = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.CASCADE,
+        default=40,
+        related_name="agent_enquiry"
+    )
     is_active = models.BooleanField(default=True)
 
     created_at = models.DateTimeField(auto_now_add=True)

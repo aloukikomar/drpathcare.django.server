@@ -17,7 +17,10 @@ class BookingFastListSerializer(serializers.ModelSerializer):
     payment_count = serializers.IntegerField(read_only=True)
     document_count = serializers.IntegerField(read_only=True)
     assigned_users = UserMiniSerializer(many=True, read_only=True)
-
+    location_str = serializers.SerializerMethodField()
+    created_by_str = serializers.SerializerMethodField()
+    view_stack = serializers.SerializerMethodField()
+    
     class Meta:
         model = Booking
         fields = [
@@ -33,8 +36,24 @@ class BookingFastListSerializer(serializers.ModelSerializer):
             "scheduled_time_slot",
             "payment_count",
             "document_count",
-            "assigned_users"
+            "assigned_users",
+            "location_str",
+            "created_by_str",
+            "view_stack"
         ]
+
+    def get_view_stack(self,obj):
+        return [i.full_name + " - " + i.role.name  for i in obj.assigned_users.all()]
+
+    def get_created_by_str(self,obj):
+        action = obj.actions.order_by("created_at").first()
+        return action.user.full_name + " - " + action.user.role.name
+
+    def get_location_str(self,obj):
+        try:
+            return obj.address.location.city +', '+ obj.address.location.state+' - '+ obj.address.location.pincode
+        except:
+            return ''
 
     def get_user_str(self, obj):
         first = obj.user.first_name or ""
