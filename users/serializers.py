@@ -1,5 +1,5 @@
 from rest_framework import serializers
-from .models import Patient, Address,Role,User,Location
+from .models import Patient, Address,Role,User,Location,OldData
 # from django.contrib.auth import get_user_model
 
 # User = get_user_model()
@@ -160,3 +160,9 @@ class VerifyMPINSerializer(serializers.Serializer):
         if not value.isdigit():
             raise serializers.ValidationError("MPIN must be numeric")
         return value
+
+
+class OldDataSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = OldData
+        fields = "__all__"

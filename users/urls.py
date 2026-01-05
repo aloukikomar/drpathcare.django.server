@@ -12,7 +12,8 @@ from users.apis import (
     LocationViewSet,
     VerifyCustomerOTPView,
     ClientMeAPIView,
-    VerifyMPINView
+    VerifyMPINView,
+    OldDataViewSet,
 )
 
 # -----------------------------
@@ -24,6 +25,7 @@ crm_router.register(r"roles", RoleViewSet, basename="crm-role")
 crm_router.register(r"patients", PatientViewSet, basename="crm-patient")
 crm_router.register(r"addresses", AddressViewSet, basename="crm-address")
 crm_router.register(r"location", LocationViewSet, basename="crm-location")
+crm_router.register(r"old-data", OldDataViewSet, basename="crm-old-data")
 
 # -----------------------------
 # Client Router
