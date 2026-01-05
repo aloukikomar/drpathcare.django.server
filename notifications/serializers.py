@@ -19,11 +19,17 @@ class NotificationSerializer(serializers.ModelSerializer):
 
 class EnquirySerializer(serializers.ModelSerializer):
     # mobile = serializers.SerializerMethodField()
+    agent_str = serializers.SerializerMethodField()
 
     class Meta:
         model = Enquiry
         fields = "__all__"
 
+    def get_agent_str(self, obj):
+        if obj.agent and obj.agent_id !=40:
+            return obj.agent.full_name + " - " + (obj.agent.role.name if obj.agent.role else "User")
+        else:
+            return "Online"
     # def get_mobile(self, obj):
     #     mobile = obj.mobile or ""
     #     if len(mobile) < 6:
