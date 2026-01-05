@@ -47,7 +47,7 @@ class BookingFastListSerializer(serializers.ModelSerializer):
 
     def get_created_by_str(self,obj):
         action = obj.actions.order_by("created_at").first()
-        return action.user.full_name + " - " + action.user.role.name
+        return action.user.full_name + " - " + (action.user.role.name if action.user.role else "User")
 
     def get_location_str(self,obj):
         try:
