@@ -63,6 +63,7 @@ class UserAdmin(BaseUserAdmin):
                 "fields": (
                     "email",
                     "mobile",
+                    "mpin",
                     "password",
                 )
             },

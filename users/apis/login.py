@@ -213,3 +213,73 @@ class VerifyCustomerOTPView(APIView):
             },
             status=status.HTTP_200_OK,
         )
+
+
+
+# -----------------------------
+# Verify MPIN
+# -----------------------------
+class VerifyMPINView(APIView):
+    permission_classes = []
+
+    def post(self, request):
+        from users.serializers import VerifyMPINSerializer
+        serializer = VerifyMPINSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+
+        mobile = serializer.validated_data["mobile"]
+        mpin = serializer.validated_data["mpin"]
+
+        user = User.objects.filter(mobile=mobile).first()
+        if not user:
+            return Response(
+                {"error": "User not found"},
+                status=status.HTTP_404_NOT_FOUND,
+            )
+
+        # ✅ CRM-only check (same as OTP)
+        if not user.role:
+            return Response(
+                {"error": "Access denied — not a CRM user"},
+                status=status.HTTP_403_FORBIDDEN,
+            )
+
+        # ✅ MPIN check
+        if not user.mpin:
+            return Response(
+                {"error": "MPIN not set for this user"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+        if user.mpin != int(mpin):
+            return Response(
+                {"error": "Invalid MPIN"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
+
+        # ✅ Issue JWT tokens
+        refresh = RefreshToken.for_user(user)
+
+        return Response(
+            {
+                "message": "MPIN verified successfully",
+                "refresh": str(refresh),
+                "access": str(refresh.access_token),
+                "user": {
+                    "id": user.id,
+                    "email": user.email,
+                    "mobile": user.mobile,
+                    "name": (user.first_name or "") + " " + (user.last_name or ""),
+                    "user_code": user.user_code,
+                    "custome_permissions": user.custome_permissions,
+                    "role": {
+                        "id": user.role.id,
+                        "name": user.role.name,
+                        "view_all": user.role.view_all,
+                        "permissions": user.role.permissions or [],
+                        "max_amount": user.role.max_amount,
+                        "max_percentage": user.role.max_percentage,
+                    },
+                },
+            },
+            status=status.HTTP_200_OK,
+        )

@@ -84,6 +84,7 @@ class UserSerializer(serializers.ModelSerializer):
             "user_code",        # ✅ ADD
             "role",
             "role_name",
+            "mpin",
             "parent",           # ✅ ADD (id only, writeable)
             "parent_name",      # ✅ ADD (read-only display)
             "is_staff",
@@ -149,3 +150,13 @@ class AddressSerializer(serializers.ModelSerializer):
     class Meta:
         model = Address
         fields = "__all__"
+
+
+class VerifyMPINSerializer(serializers.Serializer):
+    mobile = serializers.CharField(max_length=15)
+    mpin = serializers.CharField(min_length=6, max_length=6)
+
+    def validate_mpin(self, value):
+        if not value.isdigit():
+            raise serializers.ValidationError("MPIN must be numeric")
+        return value

@@ -111,6 +111,8 @@ class User(AbstractBaseUser, PermissionsMixin):
         help_text="List of permission keys"
     )
 
+    mpin = models.PositiveIntegerField(null=True, blank=True)
+
     USERNAME_FIELD = "email"
     REQUIRED_FIELDS = ["mobile"]
 

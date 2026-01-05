@@ -50,40 +50,88 @@ class LocationViewSet(viewsets.ModelViewSet):
     ordering_fields = ["pincode","city","state"]
 
 
+
+
     @action(detail=False, methods=["post"], url_path="bulk-upload")
     def bulk_upload(self, request):
         """
         Upload CSV with columns: pincode,district,statename
+        Deduplicates by pincode before DB hit
         """
         file = request.FILES.get("file")
         if not file:
-            return Response({"error": "No file provided"}, status=status.HTTP_400_BAD_REQUEST)
+            return Response(
+                {"error": "No file provided"},
+                status=status.HTTP_400_BAD_REQUEST,
+            )
 
         decoded_file = TextIOWrapper(file.file, encoding="utf-8")
         reader = csv.DictReader(decoded_file)
-        created = 0
-        skipped = 0
+
+        # -----------------------------
+        # STEP 1: Deduplicate CSV rows
+        # -----------------------------
+        csv_map = {}  # pincode -> {city, state}
 
         for row in reader:
-            pincode = row.get("pincode")
-            city = row.get("district")
-            state = row.get("statename")
+            pincode = (row.get("pincode") or "").strip()
+            city = (row.get("district") or "").strip()
+            state = (row.get("statename") or "").strip()
+
             if not pincode or not city or not state:
-                continue  # skip invalid row
+                continue  # skip invalid rows
 
-            if Location.objects.filter(pincode=pincode).exists():
-                skipped += 1
-                continue  # skip duplicates
+            # last occurrence wins (fine for master data)
+            csv_map[pincode] = {
+                "city": city,
+                "state": state,
+            }
 
-            Location.objects.create(
-                pincode=pincode,
-                city=city,
-                state=state,
-                country="India"  # default
+        if not csv_map:
+            return Response(
+                {"created": 0, "skipped_duplicates": 0},
+                status=status.HTTP_200_OK,
             )
-            created += 1
+
+        # ----------------------------------
+        # STEP 2: Fetch existing pincodes
+        # ----------------------------------
+        existing_pincodes = set(
+            Location.objects.filter(
+                pincode__in=csv_map.keys()
+            ).values_list("pincode", flat=True)
+        )
+
+        # ----------------------------------
+        # STEP 3: Prepare bulk create list
+        # ----------------------------------
+        to_create = []
+        skipped = 0
+
+        for pincode, data in csv_map.items():
+            if pincode in existing_pincodes:
+                skipped += 1
+                continue
+
+            to_create.append(
+                Location(
+                    pincode=pincode,
+                    city=data["city"],
+                    state=data["state"],
+                    country="India",
+                )
+            )
+
+        # ----------------------------------
+        # STEP 4: Bulk insert
+        # ----------------------------------
+        Location.objects.bulk_create(to_create, batch_size=1000)
 
         return Response(
-            {"created": created, "skipped_duplicates": skipped},
+            {
+                "created": len(to_create),
+                "skipped_duplicates": skipped,
+                "total_rows_processed": len(csv_map),
+            },
             status=status.HTTP_201_CREATED,
         )
