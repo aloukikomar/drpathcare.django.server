@@ -5,6 +5,7 @@ from rest_framework.decorators import action
 from rest_framework.response import Response
 from django.db import transaction
 import pandas as pd
+from drpathcare.pagination import StandardResultsSetPagination
 
 from users.models import OldData
 from users.serializers import OldDataSerializer
@@ -17,6 +18,7 @@ from users.constants import (
 class OldDataViewSet(viewsets.ModelViewSet):
     queryset = OldData.objects.all().order_by("-updated_at")
     serializer_class = OldDataSerializer
+    pagination_class = StandardResultsSetPagination
     filter_backends = [filters.SearchFilter,filters.OrderingFilter]
     search_fields = ["mobile", "data__name"]
     ordering_fields = [
