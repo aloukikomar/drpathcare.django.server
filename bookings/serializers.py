@@ -20,7 +20,10 @@ class BookingFastListSerializer(serializers.ModelSerializer):
     location_str = serializers.SerializerMethodField()
     created_by_str = serializers.SerializerMethodField()
     view_stack = serializers.SerializerMethodField()
-    
+    address_str = serializers.SerializerMethodField()
+    # ✅ NEW
+    total_tests = serializers.SerializerMethodField()
+
     class Meta:
         model = Booking
         fields = [
@@ -38,9 +41,25 @@ class BookingFastListSerializer(serializers.ModelSerializer):
             "document_count",
             "assigned_users",
             "location_str",
+            "address_str",
             "created_by_str",
-            "view_stack"
+            "view_stack",
+            "total_tests",   
         ]
+
+    # -------------------------
+    # NEW: total tests count
+    # -------------------------
+    def get_total_tests(self, obj):
+        """
+        Counts booking items (tests/profiles/packages).
+        Uses related manager — no extra DB hit if prefetched.
+        """
+        try:
+            return obj.items.count()
+        except Exception:
+            return 0
+
 
     def get_view_stack(self,obj):
         return [i.full_name + " - " + i.role.name  for i in obj.assigned_users.all()]
@@ -48,6 +67,12 @@ class BookingFastListSerializer(serializers.ModelSerializer):
     def get_created_by_str(self,obj):
         action = obj.actions.order_by("created_at").first()
         return action.user.full_name + " - " + (action.user.role.name if action.user.role else "User")
+
+    def get_address_str(self,obj):
+        try:
+            return obj.address.line1 +', '+ obj.address.line2
+        except:
+            return ''
 
     def get_location_str(self,obj):
         try:
