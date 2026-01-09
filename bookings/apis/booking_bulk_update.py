@@ -118,6 +118,19 @@ class BookingBulkUpdateViewSet(GenericViewSet):
             booking.coupon_id = coupon_id or None
 
         # -------------------------
+        # UPDATE ADDRESS
+        # -------------------------
+        if "update_address" in actions:
+            address_id = data.get("address")
+
+            if not address_id:
+                raise ValidationError({"address": "Address is required"})
+
+            booking.address_id = address_id
+            booking.status = "open"
+
+
+        # -------------------------
         # UPDATE SCHEDULE
         # -------------------------
         if "update_schedule" in actions:
