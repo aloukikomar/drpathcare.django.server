@@ -419,6 +419,7 @@ class BookingBulkUpdateSerializer(serializers.Serializer):
                 "update_items",
                 "update_discounts",
                 "update_schedule",
+                "update_address",
             ]
         ),
         allow_empty=False,
