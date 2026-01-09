@@ -434,3 +434,4 @@ class BookingBulkUpdateSerializer(serializers.Serializer):
 
     scheduled_date = serializers.DateField(required=False)
     scheduled_time_slot = serializers.CharField(required=False)
+    address = serializers.CharField(required=False)
