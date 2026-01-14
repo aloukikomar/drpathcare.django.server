@@ -40,6 +40,23 @@ class UserViewSet(viewsets.ModelViewSet):
         qs = super().get_queryset()
         if self.request.query_params.get("staff"):
             qs = qs.filter(role__isnull=False)
+            # print(self.request.user.role,self.request.user.role == 'Report Uploader')
+            if self.request.user and self.request.user.role.name != 'Admin':
+                if self.request.user.role.name == 'Verifier':
+                    qs = qs.filter(role__name='Root Manager')
+                elif self.request.user.role.name == 'Report Uploader':
+                    # print(self.request.user.role)
+                    qs = qs.filter(role__name='Health Manager')
+                    # print(qs)
+                elif self.request.user.role.name == 'Health Manager':
+                    # print(self.request.user.role)
+                    qs = qs.filter(role__name='Dietitian')
+                    # print(qs)
+                else:    
+                    
+                    user_list = self.request.user.get_assigned_users if self.request.user.get_assigned_users else []
+                    # print(user_list)
+                    qs = qs.filter(id__in=user_list)
         return qs
 
     # ------------------------------------------------------

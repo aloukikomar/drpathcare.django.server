@@ -10,7 +10,7 @@ class Booking(models.Model):
     STATUS_CHOICES = [
         ("open", "Open"),
         ("verified", "Verified"),
-        ("manger_assigned", "Manger Assigned"),
+        ("root_manager","Root Manager"),
         ("feild_agent_assigned", "Feild Agent Assigned"),
         ("payment_collected", "Payment Collected"),
         ("sample_collected", "Sample Collected"),

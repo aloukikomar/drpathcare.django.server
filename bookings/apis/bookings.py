@@ -186,6 +186,11 @@ class BookingViewSet(viewsets.ModelViewSet):
             # Replace existing assigned users with this agent
             for user in agents:
                 booking.assigned_users.add(user.id)
+                if user.role.name in ['Phlebo','Root Manager','Health Manager','Dietitian']:
+                    print(user.role.name.lower().replace(" ","_"))
+                    booking.status = user.role.name.lower().replace(" ","_")
+                    booking.save(update_fields=["status"])
+                
 
         # === 3️⃣ Payment Update ===
         elif action_type == "update_payment":
@@ -193,8 +198,14 @@ class BookingViewSet(viewsets.ModelViewSet):
                 raise ValidationError({"payment_method": "Payment method is required."})
 
             booking.payment_method = payment_method
+            report_uploaders = User.objects.filter(role__name='Report Uploader')
+            if report_uploaders:
+                for i in report_uploaders:
+                    booking.assigned_users.add(i)
+            else:
+                booking.assigned_users.add(User.objects.get(id=5))
 
-            if payment_method == "cash":
+            if payment_method == "cash" or payment_method == "upi" :
                 booking.payment_status = "success"
                 booking.status = "payment_collected"
                 booking.save(update_fields=["payment_method", "payment_status", "status"])
@@ -207,7 +218,7 @@ class BookingViewSet(viewsets.ModelViewSet):
                 BookingPayment.objects.create(
                     booking=booking,
                     amount=booking.final_amount,
-                    method="cash",
+                    method=payment_method,
                     status="success",
                     remarks=remarks,
                     file_url=file_url,  # proof of payment (optional)

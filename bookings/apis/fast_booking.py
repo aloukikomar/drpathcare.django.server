@@ -23,7 +23,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
         "user__last_name",
         "user__mobile",
     ]
-    ordering_fields = ["created_at", "final_amount", "status"]
+    ordering_fields = ["created_at","scheduled_date","initial_amount", "final_amount", "status","payment_status","address__location__city","user__first_name"]
 
     
 
@@ -62,6 +62,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
         # ----------------------------------
         # Assigned users filter (ANY match)
         # ----------------------------------
+        print(assigned_ids)
         if assigned_ids:
             qs = qs.filter(
                 assigned_users__in=assigned_ids
