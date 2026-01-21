@@ -183,9 +183,18 @@ class BookingViewSet(viewsets.ModelViewSet):
             except User.DoesNotExist:
                 raise ValidationError({"assigned_users": "Invalid agent ID"})
 
+            # Existing assigned users
+            assigned_users = booking.assigned_users.select_related("role").all()
+
+
             # Replace existing assigned users with this agent
             for user in agents:
+                role_id = user.role.id 
+                to_remove = booking.assigned_users.filter(role_id=role_id)
+                if to_remove.exists():
+                    booking.assigned_users.remove(*to_remove)
                 booking.assigned_users.add(user.id)
+                
                 if user.role.name in ['Phlebo','Root Manager','Health Manager','Dietitian']:
                     print(user.role.name.lower().replace(" ","_"))
                     booking.status = user.role.name.lower().replace(" ","_")

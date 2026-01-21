@@ -61,104 +61,124 @@ class OldDataViewSet(viewsets.ModelViewSet):
         if not file:
             return Response({"error": "File is required"}, status=400)
 
+        valid_dfs = []
+        skipped_sheets = []
+
         try:
-            df = (
-                pd.read_excel(file)
-                if file.name.endswith("xlsx")
-                else pd.read_csv(file)
-            )
+            # -------------------------
+            # CSV → single dataframe
+            # -------------------------
+            if file.name.lower().endswith(".csv"):
+                df = pd.read_csv(file)
+                valid_dfs.append(df)
+
+            # -------------------------
+            # EXCEL → read ALL sheets
+            # -------------------------
+            else:
+                xls = pd.ExcelFile(file)
+
+                for sheet_name in xls.sheet_names:
+                    sheet_df = pd.read_excel(xls, sheet_name=sheet_name)
+
+                    # normalize headers
+                    sheet_df.columns = [
+                        str(c).strip().lower() for c in sheet_df.columns
+                    ]
+
+                    received = set(sheet_df.columns)
+                    missing = OLD_DATA_REQUIRED_COLUMNS.keys() - received
+
+                    if missing:
+                        skipped_sheets.append({
+                            "sheet": sheet_name,
+                            "missing_columns": sorted(missing),
+                        })
+                        continue
+
+                    valid_dfs.append(sheet_df)
+
         except Exception as e:
             return Response({"error": str(e)}, status=400)
 
         # -------------------------
-        # NORMALIZE HEADERS
+        # NO VALID SHEETS
         # -------------------------
-        df.columns = [str(c).strip().lower() for c in df.columns]
-
-        received = set(df.columns)
-
-        missing_required = OLD_DATA_REQUIRED_COLUMNS.keys() - received
-        if missing_required:
+        if not valid_dfs:
             return Response(
                 {
-                    "error": "Missing required columns",
-                    "missing": sorted(missing_required),
-                    "received": sorted(received),
+                    "error": "No valid sheets found",
+                    "skipped_sheets": skipped_sheets,
                 },
                 status=400,
             )
 
         # -------------------------
-        # 🔥 DEDUPE FILE BY MOBILE
+        # MERGE ALL VALID SHEETS
         # -------------------------
-        deduped_rows = {}
+        df = pd.concat(valid_dfs, ignore_index=True)
 
-        for _, row in df.iterrows():
-            mobile = str(row.get("mob no", "")).strip()
-            mobile = "".join(filter(str.isdigit, mobile))
+        created = skipped = 0
+        new_objects = []
+
+        from collections import defaultdict
+        mobile_counts = defaultdict(int)
+
+        # -------------------------
+        # PROCESS ROWS
+        # -------------------------
+        for idx, row in df.iterrows():
+            raw_mobile = row.get("mob no", "")
+            raw_mobile = "" if pd.isna(raw_mobile) else str(raw_mobile)
+
+            mobile = "".join(filter(str.isdigit, raw_mobile))
 
             if not mobile:
+                print(
+                    f"SKIPPED → row={idx+1} | invalid mobile='{raw_mobile}' | name='{row.get('name')}'"
+                )
+                skipped += 1
                 continue
 
-            # last row wins
-            deduped_rows[mobile] = row
+            mobile_counts[mobile] += 1
 
-        mobiles = list(deduped_rows.keys())
-
-        # -------------------------
-        # PREFETCH EXISTING (ONE DB HIT)
-        # -------------------------
-        existing = {
-            obj.mobile: obj
-            for obj in OldData.objects.filter(mobile__in=mobiles)
-        }
-
-        new_objects = []
-        update_objects = []
-
-        created = updated = skipped = 0
-
-        # -------------------------
-        # PROCESS DEDUPED ROWS
-        # -------------------------
-        for mobile, row in deduped_rows.items():
             row_data = {
                 col: "" if pd.isna(row.get(col)) else str(row.get(col)).strip()
                 for col in OLD_DATA_ALLOWED_COLUMNS
                 if col in df.columns
             }
 
-            if mobile in existing:
-                obj = existing[mobile]
-                obj.data.update(row_data)
-                update_objects.append(obj)
-                updated += 1
-            else:
-                new_objects.append(
-                    OldData(
-                        mobile=mobile,
-                        data=row_data,
-                        source=file.name,
-                    )
+            new_objects.append(
+                OldData(
+                    mobile=mobile,
+                    data=row_data,
+                    source=f"{file.name}",
                 )
-                created += 1
-
-        if new_objects:
-            OldData.objects.bulk_create(new_objects, batch_size=500)
-
-        if update_objects:
-            OldData.objects.bulk_update(
-                update_objects,
-                ["data", "updated_at"],
-                batch_size=500,
             )
+            created += 1
+
+        # -------------------------
+        # BULK INSERT
+        # -------------------------
+        OldData.objects.bulk_create(new_objects, batch_size=500)
+
+        # -------------------------
+        # DUPLICATE REPORTING
+        # -------------------------
+        duplicates = {m: c for m, c in mobile_counts.items() if c > 1}
+        if duplicates:
+            print("🔁 DUPLICATE MOBILES (NOT BLOCKED):")
+            for m, c in duplicates.items():
+                print(f"{m} → {c} rows")
 
         return Response(
             {
                 "created": created,
-                "updated": updated,
-                "deduped_rows": len(deduped_rows),
-                "original_rows": len(df),
+                "skipped_rows": skipped,
+                "total_rows": len(df),
+                "valid_sheets": len(valid_dfs),
+                "skipped_sheets": skipped_sheets,
+                "duplicate_mobiles": len(duplicates),
             },
             status=200,
         )

@@ -42,6 +42,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
         # Query params
         # ----------------------------------
         status_param = self.request.query_params.get("status")
+        payment_status_param = self.request.query_params.get("payment_status")
         user_param = self.request.query_params.get("user")
         incentive = self.request.query_params.get("incentive")
 
@@ -55,6 +56,9 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
         # ----------------------------------
         if status_param:
             qs = qs.filter(status=status_param)
+        
+        if payment_status_param:
+            qs = qs.filter(payment_status=payment_status_param)
 
         if user_param:
             qs = qs.filter(user_id=user_param)
@@ -62,7 +66,7 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
         # ----------------------------------
         # Assigned users filter (ANY match)
         # ----------------------------------
-        print(assigned_ids)
+        # print(assigned_ids)
         if assigned_ids:
             qs = qs.filter(
                 assigned_users__in=assigned_ids
