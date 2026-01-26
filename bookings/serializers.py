@@ -232,6 +232,9 @@ class BookingSerializer(serializers.ModelSerializer):
 
     actions = BookingActionTrackerSerializer(many=True, read_only=True)
     coupon_code = serializers.CharField(write_only=True, required=False, allow_blank=True)
+    payment_count = serializers.IntegerField(read_only=True)
+    document_count = serializers.IntegerField(read_only=True)
+    view_stack = serializers.SerializerMethodField()
 
     class Meta:
         model = Booking
@@ -241,7 +244,8 @@ class BookingSerializer(serializers.ModelSerializer):
             "base_total", "offer_total", "final_amount", "total_savings","initial_amount",
             "status","customer_status", "payment_status", "payment_method",
             "scheduled_date", "scheduled_time_slot", "remarks",
-            "items", "create_items", "actions",
+            "items", "create_items", "actions","payment_count",
+            "document_count","view_stack",
             "created_at", "updated_at", "user_detail",
         ]
         read_only_fields = [
@@ -249,6 +253,9 @@ class BookingSerializer(serializers.ModelSerializer):
             "created_at", "updated_at",
         ]
 
+    def get_view_stack(self,obj):
+        return [i.full_name + " - " + i.role.name  for i in obj.assigned_users.all()]
+        
     # -------------------------
     # Coupon helper
     # -------------------------

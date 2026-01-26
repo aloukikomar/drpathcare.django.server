@@ -144,7 +144,7 @@ class BookingBulkUpdateViewSet(GenericViewSet):
 
             booking.scheduled_date = date
             booking.scheduled_time_slot = slot
-            booking.status = "open"
+            booking.status = "rescheduled"
 
         booking.save()
 

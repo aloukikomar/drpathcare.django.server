@@ -14,6 +14,7 @@ from payments.models import BookingPayment
 from bookings.utils.s3_utils import upload_to_s3 
 from bookings.utils.invoice import generate_invoice_pdf
 from users.models import User
+from django.db.models import Count, Q
 
 
 def build_verification_notes(booking):
@@ -64,7 +65,10 @@ class BookingViewSet(viewsets.ModelViewSet):
                 qs = qs.filter(user_id=user_param)
         if status_param:
             qs = qs.filter(status=status_param)
-        return qs.order_by("-created_at")
+        return qs.annotate(
+                payment_count=Count("payments", distinct=True),
+                document_count=Count("documents", distinct=True),
+            ).order_by("-created_at")
 
     @transaction.atomic
     def perform_create(self, serializer):
