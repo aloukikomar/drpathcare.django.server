@@ -1,13 +1,13 @@
 from rest_framework import viewsets, filters
 from rest_framework.permissions import IsAuthenticated, AllowAny
-from .models import Notification, Enquiry
+from .models import Notification, Enquiry, PushDevice
 from .serializers import (
     NotificationSerializer,
     EnquirySerializer,
     EnquiryToUserSerializer,
 )
 from drpathcare.pagination import StandardResultsSetPagination
-from rest_framework.decorators import action
+from rest_framework.decorators import action,api_view,permission_classes
 from rest_framework.response import Response
 from rest_framework import status
 from users.models import User
@@ -192,3 +192,35 @@ class EnquiryViewSet(viewsets.ModelViewSet):
             },
             status=status.HTTP_201_CREATED,
         )
+
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def register_push_device(request):
+    token = request.data.get("token")
+    platform = request.data.get("platform")
+
+    if not token:
+        return Response(
+            {"error": "Expo push token is required"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    if platform not in ("android", "ios"):
+        return Response(
+            {"error": "Invalid platform"},
+            status=status.HTTP_400_BAD_REQUEST,
+        )
+
+    PushDevice.objects.update_or_create(
+        expo_push_token=token.strip(),
+        defaults={
+            "user": request.user,
+            "platform": platform,
+            "role": getattr(request.user.role, "name", None),
+            "is_active": True,
+        },
+    )
+
+    return Response({"ok": True})

@@ -1,6 +1,6 @@
 # notification/admin.py
 from django.contrib import admin
-from .models import Notification, SMSTemplate,Enquiry
+from .models import Notification, SMSTemplate,Enquiry, PushDevice
 
 
 @admin.register(SMSTemplate)
@@ -28,3 +28,62 @@ class EnquiryAdmin(admin.ModelAdmin):
     list_display = ("name", "mobile", "created_at")
     search_fields = ("name", "mobile", "enquiry")
     ordering = ("-created_at",)
+
+@admin.register(PushDevice)
+class PushDeviceAdmin(admin.ModelAdmin):
+    list_display = (
+        "id",
+        "user",
+        "role",
+        "platform",
+        "short_token",
+        "is_active",
+        "created_at",
+    )
+
+    list_filter = (
+        "platform",
+        "role",
+        "is_active",
+        "created_at",
+    )
+
+    search_fields = (
+        "user__username",
+        "user__email",
+        "user__mobile",
+        "expo_push_token",
+    )
+
+    readonly_fields = (
+        "created_at",
+        "updated_at",
+    )
+
+    ordering = ("-created_at",)
+
+    fieldsets = (
+        (
+            "User Info",
+            {
+                "fields": ("user", "role", "platform", "is_active"),
+            },
+        ),
+        (
+            "Push Token",
+            {
+                "fields": ("expo_push_token",),
+            },
+        ),
+        (
+            "Timestamps",
+            {
+                "fields": ("created_at", "updated_at"),
+            },
+        ),
+    )
+
+    def short_token(self, obj):
+        return obj.expo_push_token[:30] + "..."
+
+    short_token.short_description = "Expo Token"
