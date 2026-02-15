@@ -11,6 +11,7 @@ from django.conf import settings
 from users.models import User
 from bookings.models import Booking
 from notifications.models import Enquiry
+from notifications.utils.whatsapp_utils import send_whatsapp_template
 
 
 class CallConnectAPIView(APIView):
@@ -55,6 +56,22 @@ class CallConnectAPIView(APIView):
             if not booking:
                 raise ValidationError({"booking_id": "Invalid booking"})
             to_number = booking.user.mobile
+        elif call_type == "whatsapp":
+            booking_id = request.data.get("booking_id")
+            booking = Booking.objects.filter(id=booking_id).first()
+            if not booking:
+                raise ValidationError({"booking_id": "Invalid booking"})
+            booking_user = booking.user
+            send_whatsapp_template(user=booking_user,template_name="welcome")
+            return Response(
+                {
+                    "success": True,
+                    "call_type": call_type,
+                    "from": from_number,
+                    "to": to_number,
+                }
+            )
+
 
         else:
             raise ValidationError({"call_type": "Invalid call_type"})

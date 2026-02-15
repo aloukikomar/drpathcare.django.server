@@ -131,8 +131,8 @@ def send_booking_notifications(
         try:
             whatsapp_notif = send_whatsapp_template(
                 user=user,
-                template_name=templates["whatsapp"],
-                header_params={"name":context['name']},
+                template_name=templates["whatsapp"] if booking.customer_status != 'report_uploaded' else 'report_update',
+                header_params={"name":context['name']} if booking.customer_status != 'report_uploaded' else None,
                 body_params=context,
                 related_object=booking,
             )

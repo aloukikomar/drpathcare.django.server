@@ -70,6 +70,13 @@ def send_whatsapp_template(
                     {"type": "text", "text": str(body_params['scheduled_time_slot'])},
                 ],
             })
+        elif template_name=='report_update':
+            components.append({
+                "type": "body",
+                "parameters": [
+                    {"type": "text", "text": str(body_params['name'])},
+                ],
+            })
         else:
             components.append({
                 "type": "body",
@@ -83,13 +90,14 @@ def send_whatsapp_template(
                     {"type": "text", "text": str(body_params['scheduled_time_slot'])},
                 ],
             })
+    code = 'en_us' if template_name == 'welcome' else 'en'
     payload = {
         "to": "91"+str(user.mobile),  # must be international format (e.g. 919876543210)
         "content": {
             "type": "template",
             "template": {
                 "name": template_name,
-                "language": {"code": "en"},
+                "language": {"code": code},
                 "components": components,
             },
         },

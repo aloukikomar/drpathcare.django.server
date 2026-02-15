@@ -3,7 +3,7 @@ from django.urls import path, include
 from rest_framework.routers import DefaultRouter
 from rest_framework_simplejwt.views import TokenRefreshView
 from notifications.views import (
-    NotificationViewSet,EnquiryViewSet
+    NotificationViewSet,EnquiryViewSet,register_push_device
 )
 
 # -----------------------------
@@ -14,6 +14,7 @@ crm_router.register(r"notifications", NotificationViewSet, basename="crm-notific
 crm_router.register(r"enquiries", EnquiryViewSet, basename="enquiry")
 
 urlpatterns = [
+    path("push/register/", register_push_device, name="register-push"),
     # CRM endpoints
     path("crm/", include(crm_router.urls)),
 
