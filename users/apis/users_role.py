@@ -38,6 +38,7 @@ class UserViewSet(viewsets.ModelViewSet):
 
     def get_queryset(self):
         qs = super().get_queryset()
+        qs = qs.filter(is_active=True)
         if self.request.query_params.get("staff"):
             qs = qs.filter(role__isnull=False)
             # print(self.request.user.role,self.request.user.role == 'Report Uploader')
@@ -87,9 +88,21 @@ class UserViewSet(viewsets.ModelViewSet):
         # convert empty "" → None
         if data.get("email") == "":
             data["email"] = None
-
+    
         serializer = self.get_serializer(instance, data=data, partial=partial)
         serializer.is_valid(raise_exception=True)
         self.perform_update(serializer)
 
         return Response(serializer.data)
+    
+    def destroy(self, request, *args, **kwargs):
+        instance = self.get_object()
+        
+        # Instead of deleting from DB, just deactivate
+        instance.is_active = False 
+        instance.save()
+        
+        return Response(
+            {"detail": "User deactivated successfully."}, 
+            status=status.HTTP_204_NO_CONTENT
+        )

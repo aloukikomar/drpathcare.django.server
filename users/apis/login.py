@@ -37,7 +37,7 @@ class SendOTPView(APIView):
         code = str(random.randint(1000, 9999))
 
         # ✅ Check if user exists
-        user = User.objects.filter(mobile=mobile).first()
+        user = User.objects.filter(mobile=mobile,is_active=True).first()
         is_user = bool(user)
         is_crm_user = bool(user and getattr(user, "role", None) and user.role.name in CRM_ROLES)
 
@@ -85,7 +85,7 @@ class VerifyOTPView(APIView):
         mobile = serializer.validated_data["mobile"]
         otp_code = serializer.validated_data["otp"]
 
-        user = User.objects.filter(mobile=mobile).first()
+        user = User.objects.filter(mobile=mobile,is_active=True).first()
         if not user:
             return Response({"error": "User not found"}, status=status.HTTP_404_NOT_FOUND)
 
@@ -162,7 +162,7 @@ class VerifyCustomerOTPView(APIView):
             return Response({"error": "Invalid or expired OTP"}, status=status.HTTP_400_BAD_REQUEST)
 
         # 🧩 Check if user exists
-        user = User.objects.filter(mobile=mobile).first()
+        user = User.objects.filter(mobile=mobile,is_active=True).first()
         print(request.data)
         # 🧩 If user doesn't exist, create from provided info
         if not user:
@@ -230,7 +230,7 @@ class VerifyMPINView(APIView):
         mobile = serializer.validated_data["mobile"]
         mpin = serializer.validated_data["mpin"]
 
-        user = User.objects.filter(mobile=mobile).first()
+        user = User.objects.filter(mobile=mobile,is_active=True).first()
         if not user:
             return Response(
                 {"error": "User not found"},
