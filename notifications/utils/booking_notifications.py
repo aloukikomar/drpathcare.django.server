@@ -77,7 +77,7 @@ def send_booking_notifications(
         "ref_id":booking.ref_id,
         "booking_id": booking.id,
         "name": user.first_name,
-        "status":booking.customer_status,
+        "status":booking.customer_status if booking.customer_status != 'verified' else 'registered',
         "final_amount": booking.final_amount,
         "scheduled_date": booking.scheduled_date,
         "scheduled_time_slot": booking.scheduled_time_slot,

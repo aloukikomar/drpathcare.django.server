@@ -47,6 +47,7 @@ def capture_old_booking_state(sender, instance, **kwargs):
         return
     try:
         old = Booking.objects.get(pk=instance.pk)
+        # print(old.status ,"1")
         instance._old_status = old.status
         instance._old_payment_status = old.payment_status
         instance._old_customer_status = old.customer_status
@@ -73,14 +74,14 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
             old_status = getattr(instance, "_old_status", None)
             old_payment_status = getattr(instance, "_old_payment_status", None)
             old_customer_status = getattr(instance, "_old_customer_status", None)
-
+            # print(old_status,"2")
             refreshed = Booking.objects.filter(pk=instance.pk).first()
             if not refreshed:
                 return
 
             # 🟢 Step 1: Handle new booking
             if created:
-                send_booking_notifications(str(instance.id), "booking_created")
+                # send_booking_notifications(str(instance.id), "booking_created")
                 return
 
             # 🟢 Step 2: Define status-to-customer_status mapping

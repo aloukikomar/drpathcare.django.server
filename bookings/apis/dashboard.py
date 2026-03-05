@@ -68,7 +68,7 @@ class DashboardAPIView(APIView):
         incentives_qs = filter_created_only(incentives_qs, request)
 
         # Revenue uses created_at ONLY
-        revenue_qs = filter_created_only(Booking.objects.all(), request)
+        revenue_qs = filter_booking_operational(Booking.objects.all(), request)
 
         # --------------------------------------------------
         # ROLE-BASED VISIBILITY
@@ -106,17 +106,27 @@ class DashboardAPIView(APIView):
         # --------------------------------------------------
         # ADMIN VIEW
         # --------------------------------------------------
+        status_list = ["payment_collected","sample_collected","report_uploaded","health_manager_assigned","dietitian_assigned","completed"]
+        # print(status_list)
         if role and role.view_all:
+            revenue_qs = revenue_qs.exclude(status='cancelled')
+            # print(revenue_qs.values_list('status','final_amount'))
+            total= (
+                revenue_qs
+                .aggregate(total=Sum("final_amount"))["total"]
+                or Decimal("0.00")
+            )
+            # print(total)
             completed_revenue = (
                 revenue_qs
-                .filter(status="completed")
+                .filter(status__in=status_list)
                 .aggregate(total=Sum("final_amount"))["total"]
                 or Decimal("0.00")
             )
 
             potential_revenue = (
                 revenue_qs
-                .exclude(status="completed")
+                .exclude(status__in=status_list).exclude(status='open')
                 .aggregate(total=Sum("final_amount"))["total"]
                 or Decimal("0.00")
             )

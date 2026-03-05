@@ -6,6 +6,9 @@ from django.conf import settings
 from datetime import datetime
 from django.db.models import Count, Q
 from django.utils.timezone import make_aware
+from rest_framework.decorators import action
+from rest_framework.response import Response
+from bookings.utils.export import generate_booking_excel_and_email
 
 class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
     """
@@ -125,3 +128,21 @@ class BookingFastListViewSet(viewsets.ReadOnlyModelViewSet):
             .order_by("-created_at")
         )
 
+    @action(detail=False, methods=['get'])
+    def export(self, request):
+        # We add prefetches specifically for the serializer needs
+        queryset = self.get_queryset().prefetch_related(
+            'items', 
+            'actions__user', 
+            'assigned_users__role',
+            'address__location'
+        )
+        
+        user_email = request.user.email
+        generate_booking_excel_and_email(
+            queryset, # Safety cap
+            user_email, 
+            self.get_serializer_class()
+        )
+        
+        return Response({"message": "Check your email in a few minutes!"})
