@@ -142,8 +142,7 @@ def sync_booking_from_latest_payment(booking: Booking) -> None:
     if not latest_payment:
         return
 
-    # Update booking fields based on latest payment status
-    booking.payment_status = latest_payment.status
-    booking.payment_method = latest_payment.method
-
-    booking.save(update_fields=["payment_status", "payment_method"])
+    Booking.objects.filter(pk=booking.pk).update(
+        payment_status=latest_payment.status,
+        payment_method=latest_payment.method
+    )

@@ -33,7 +33,7 @@ def generate_ref_id_for_booking(instance: Booking):
 
 
 @receiver(pre_save, sender=Booking)
-def pre_save_generate_ref_id(sender, instance, **kwargs):
+def pre_save_generate_ref_id(sender, instance, dispatch_uid="booking_pre_save_ref_id", **kwargs):
     if not instance.ref_id:
         generate_ref_id_for_booking(instance)
 
@@ -41,7 +41,7 @@ def pre_save_generate_ref_id(sender, instance, **kwargs):
 # ============================================================
 # 🔹 Capture old state before save
 # ============================================================
-@receiver(pre_save, sender=Booking)
+@receiver(pre_save, sender=Booking, dispatch_uid="booking_capture_old_state")
 def capture_old_booking_state(sender, instance, **kwargs):
     if not instance.pk:
         return
@@ -60,7 +60,7 @@ def capture_old_booking_state(sender, instance, **kwargs):
 # ============================================================
 # 🔹 Unified post-save handler (status sync + notifications)
 # ============================================================
-@receiver(post_save, sender=Booking)
+@receiver(post_save, sender=Booking,dispatch_uid="booking_unified_handler")
 def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
     """
     Unified handler that:
