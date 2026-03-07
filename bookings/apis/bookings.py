@@ -175,8 +175,8 @@ class BookingViewSet(viewsets.ModelViewSet):
                     notes=verification_notes,
                 )
 
-                booking.save(update_fields=["initial_amount"])
-            booking.save(update_fields=["status"])
+                # booking.save(update_fields=["initial_amount"])
+            booking.save()
 
         elif action_type == "update_agent":
             if not new_agent_id:

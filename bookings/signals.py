@@ -74,7 +74,7 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
             old_status = getattr(instance, "_old_status", None)
             old_payment_status = getattr(instance, "_old_payment_status", None)
             old_customer_status = getattr(instance, "_old_customer_status", None)
-            # print(old_status,"2")
+            print(old_status,"2")
             refreshed = Booking.objects.filter(pk=instance.pk).first()
             if not refreshed:
                 return
@@ -87,6 +87,7 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
             # 🟢 Step 2: Define status-to-customer_status mapping
             customer_status_map = {
                 "open":"registered",
+                "rescheduled":"rescheduled",
                 "verified": "verified",
                 "manager_assigned": "verified",
                 "field_agent_assigned": "verified",
@@ -95,7 +96,7 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
                 "report_uploaded": "report_uploaded",
                 "health_manager_assigned": "report_uploaded",
                 "dietitian_assigned": "report_uploaded",
-                "completed": "completed",
+                "completed": "report_uploaded",
                 "cancelled": "cancelled",
             }
 
@@ -115,6 +116,8 @@ def post_save_booking_handler(sender, instance: Booking, created, **kwargs):
 
             # 🟢 Step 4: Sync customer_status with booking status
             new_customer_status = customer_status_map.get(instance.status)
+            print(new_customer_status
+                , refreshed.customer_status,new_customer_status)
             if (
                 new_customer_status
                 and refreshed.customer_status != new_customer_status
