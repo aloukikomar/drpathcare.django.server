@@ -224,3 +224,12 @@ def register_push_device(request):
     )
 
     return Response({"ok": True})
+
+
+@api_view(["POST"])
+@permission_classes([IsAuthenticated])
+def logout_push_device(request):
+    token = request.data.get("token")
+    if token:
+        PushDevice.objects.filter(expo_push_token=token).update(is_active=False)
+    return Response({"ok": True})

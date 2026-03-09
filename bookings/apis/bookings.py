@@ -15,6 +15,8 @@ from bookings.utils.s3_utils import upload_to_s3
 from bookings.utils.invoice import generate_invoice_pdf
 from users.models import User
 from django.db.models import Count, Q
+from notifications.utils.push_service import send_expo_push_notification # Ensure this matches your util filename
+
 
 
 def build_verification_notes(booking):
@@ -203,7 +205,13 @@ class BookingViewSet(viewsets.ModelViewSet):
                     print(user.role.name.lower().replace(" ","_"))
                     booking.status = user.role.name.lower().replace(" ","_")
                     booking.save(update_fields=["status"])
-                
+                    if user.role.name in ['Phlebo']:
+                        send_expo_push_notification(
+                            user_ids=[user.id],
+                            title="Boking Assigned",
+                            body="Booking Ref: "+ str(booking.ref_id) + " Assigned.",
+                        )
+
 
         # === 3️⃣ Payment Update ===
         elif action_type == "update_payment":
