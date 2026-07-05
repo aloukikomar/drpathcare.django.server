@@ -135,6 +135,14 @@ class UserSerializer(serializers.ModelSerializer):
             data["mobile"] = mask_mobile(data["mobile"])
         return data
 
+    def update(self, instance, validated_data):
+        # A Phlebo must not be able to change another user's mobile number —
+        # they only ever see the masked value, so any "edit" would just be
+        # them overwriting it with garbage (or a guessed real number).
+        if should_mask_mobile_for(self.context.get("request"), instance):
+            validated_data.pop("mobile", None)
+        return super().update(instance, validated_data)
+
 
 class SendOTPSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
