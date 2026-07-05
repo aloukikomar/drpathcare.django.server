@@ -2,10 +2,19 @@ from rest_framework import serializers
 from .models import Notification
 from .models import Enquiry
 from users.models import User,Role
+from users.utils import mask_mobile, should_mask_mobile_for
 
 class NotificationSerializer(serializers.ModelSerializer):
-    recipient_mobile = serializers.CharField(source="recipient.mobile", read_only=True)
+    recipient_mobile = serializers.SerializerMethodField()
     recipient_email = serializers.CharField(source="recipient.email", read_only=True)
+
+    def get_recipient_mobile(self, obj):
+        if not obj.recipient:
+            return None
+        mobile = obj.recipient.mobile or ""
+        if should_mask_mobile_for(self.context.get("request"), obj.recipient):
+            mobile = mask_mobile(mobile)
+        return mobile
 
     class Meta:
         model = Notification

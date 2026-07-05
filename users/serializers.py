@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .models import Patient, Address,Role,User,Location,OldData
+from .utils import mask_mobile, should_mask_mobile_for
 # from django.contrib.auth import get_user_model
 
 # User = get_user_model()
@@ -7,7 +8,7 @@ from .models import Patient, Address,Role,User,Location,OldData
 
 class PatientSerializer(serializers.ModelSerializer):
     user_email = serializers.CharField(source="user.email", read_only=True)
-    user_mobile = serializers.CharField(source="user.mobile", read_only=True)
+    user_mobile = serializers.SerializerMethodField()
     user_name = serializers.SerializerMethodField()
     user_str = serializers.SerializerMethodField()
 
@@ -16,12 +17,22 @@ class PatientSerializer(serializers.ModelSerializer):
             return f"{obj.user.first_name or ''} {obj.user.last_name or ''}".strip()
         return ""
 
+    def _mobile(self, obj):
+        if not obj.user:
+            return ""
+        mobile = obj.user.mobile or ""
+        if should_mask_mobile_for(self.context.get("request"), obj.user):
+            mobile = mask_mobile(mobile)
+        return mobile
+
+    def get_user_mobile(self, obj):
+        return self._mobile(obj)
+
     def get_user_str(self, obj):
         if obj.user:
             first = obj.user.first_name or ""
             last = obj.user.last_name or ""
-            mobile = obj.user.mobile or ""
-            return f"{first} {last} | {mobile}".strip()
+            return f"{first} {last} | {self._mobile(obj)}".strip()
         return ""
     
     class Meta:
@@ -46,15 +57,25 @@ class RoleSerializer(serializers.ModelSerializer):
 
 class UserMiniSerializer(serializers.ModelSerializer):
     name = serializers.SerializerMethodField()
+    mobile = serializers.SerializerMethodField()
 
     class Meta:
         model = User
         fields = ("id", "name","mobile")
 
+    def _mobile(self, obj):
+        mobile = obj.mobile or ""
+        if should_mask_mobile_for(self.context.get("request"), obj):
+            mobile = mask_mobile(mobile)
+        return mobile
+
     def get_name(self, obj):
         if obj.first_name or obj.last_name:
             return f"{obj.first_name or ''} {obj.last_name or ''}".strip()
-        return obj.mobile
+        return self._mobile(obj)
+
+    def get_mobile(self, obj):
+        return self._mobile(obj)
 
 # -----------------------------
 # User Serializer
@@ -108,6 +129,12 @@ class UserSerializer(serializers.ModelSerializer):
             return None
         return f"{obj.parent.first_name} {obj.parent.last_name}".strip()
 
+    def to_representation(self, instance):
+        data = super().to_representation(instance)
+        if should_mask_mobile_for(self.context.get("request"), instance):
+            data["mobile"] = mask_mobile(data["mobile"])
+        return data
+
 
 class SendOTPSerializer(serializers.Serializer):
     mobile = serializers.CharField(max_length=15)
@@ -121,7 +148,7 @@ class AddressSerializer(serializers.ModelSerializer):
     pincode = serializers.CharField(source="location.pincode", read_only=True)
     city = serializers.CharField(source="location.city", read_only=True)
     state = serializers.CharField(source="location.state", read_only=True)
-    user_mobile = serializers.CharField(source="user.mobile", read_only=True)
+    user_mobile = serializers.SerializerMethodField()
     user_name = serializers.SerializerMethodField()
     user_str = serializers.SerializerMethodField()
     location = LocationSerializer(read_only=True)
@@ -139,12 +166,22 @@ class AddressSerializer(serializers.ModelSerializer):
             return f"{obj.user.first_name or ''} {obj.user.last_name or ''}".strip()
         return ""
 
+    def _mobile(self, obj):
+        if not obj.user:
+            return ""
+        mobile = obj.user.mobile or ""
+        if should_mask_mobile_for(self.context.get("request"), obj.user):
+            mobile = mask_mobile(mobile)
+        return mobile
+
+    def get_user_mobile(self, obj):
+        return self._mobile(obj)
+
     def get_user_str(self, obj):
         if obj.user:
             first = obj.user.first_name or ""
             last = obj.user.last_name or ""
-            mobile = obj.user.mobile or ""
-            return f"{first} {last} | {mobile}".strip()
+            return f"{first} {last} | {self._mobile(obj)}".strip()
         return ""
 
     class Meta:

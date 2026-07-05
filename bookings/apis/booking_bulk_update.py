@@ -73,7 +73,9 @@ class BookingBulkUpdateViewSet(GenericViewSet):
                 result["base_total"] - result["final_amount"]
             )
             booking.coupon_id = coupon_id or None
-            booking.status = "open"
+            requester_role = request.user.role
+            if not (requester_role and requester_role.name == "Phlebo"):
+                booking.status = "open"
 
         # -------------------------
         # UPDATE DISCOUNTS

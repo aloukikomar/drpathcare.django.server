@@ -8,6 +8,7 @@ from payments.models import BookingPayment
 from users.serializers import (
     PatientSerializer, AddressSerializer, UserSerializer,UserMiniSerializer
 )
+from users.utils import mask_mobile, should_mask_mobile_for
 from lab.serializers import LabTestSerializer, ProfileSerializer, PackageSerializer
 
 
@@ -85,18 +86,14 @@ class BookingFastListSerializer(serializers.ModelSerializer):
         last = obj.user.last_name or ""
         mobile = obj.user.mobile or ""
 
-        # Mask mobile: 800xxxx271
-        if len(mobile) >= 6:
-            masked = mobile
-            # masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
-        else:
-            masked = mobile
+        if should_mask_mobile_for(self.context.get("request"), obj.user):
+            mobile = mask_mobile(mobile)
 
         full_name = f"{first} {last}".strip()
         if not full_name:
-            full_name = masked
+            full_name = mobile
 
-        return f"{full_name} ({masked})"
+        return f"{full_name} ({mobile})"
 
 # -------------------------
 # Coupon Serializers
@@ -409,14 +406,11 @@ class BookingActionTrackerListSerializer(serializers.ModelSerializer):
         if not obj.user:
             return "system"
         mobile = obj.user.mobile or ""
-        if len(mobile) >= 6:
-            masked = mobile
-            # masked = f"{mobile[:3]}xxxx{mobile[-3:]}"
-        else:
-            masked = mobile
+        if should_mask_mobile_for(self.context.get("request"), obj.user):
+            mobile = mask_mobile(mobile)
         name = (obj.user.first_name or "") + " " + (obj.user.last_name or "")
-        name = name.strip() or masked
-        return f"{name} ({masked})"
+        name = name.strip() or mobile
+        return f"{name} ({mobile})"
 
 
 class BookingBulkUpdateSerializer(serializers.Serializer):
