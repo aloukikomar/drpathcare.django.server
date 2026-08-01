@@ -35,6 +35,7 @@ class UserViewSet(viewsets.ModelViewSet):
         "created_at",
         "id",
     ]
+    ordering = ["first_name", "last_name"]
 
     def get_queryset(self):
         qs = super().get_queryset()
