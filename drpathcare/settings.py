@@ -80,7 +80,7 @@ EMAIL_USE_TLS = False                        # Use TLS for port 587
 EMAIL_USE_SSL = True                       # Set to True if using port 465
 
 EMAIL_HOST_USER = "service@drpathcare.com"     # Your GoDaddy email
-EMAIL_HOST_PASSWORD = "Admin@9910" # Your GoDaddy email password
+EMAIL_HOST_PASSWORD = "Admin@9910$" # Your GoDaddy email password
 DEFAULT_FROM_EMAIL = EMAIL_HOST_USER
 
 
